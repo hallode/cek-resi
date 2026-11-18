@@ -9,7 +9,7 @@ argument-hint: "<deskripsi tugas> [review=ask|always|never] [push=on-green|never
 Skill ini dijalankan oleh **sesi utama** (orkestrator). Subagent tidak bisa bertanya ke user, jadi setiap gerbang persetujuan ditanyakan oleh sesi utama dengan `AskUserQuestion`.
 
 ## Pengaturan
-**Model dan effort** tiap peran diatur di `.claude/agents.toml` (default effort `high`) dan diterapkan ke frontmatter agen lewat `mise run agents:sync`. Saat memanggil subagent, **jangan** mengisi parameter `model` atau `effort` di tool Agent. Cukup `subagent_type: "planner" | "executor" | "reviewer"`, maka config itu yang dipakai.
+**Model dan effort** tiap peran diatur di `.claude/agents.toml` (default effort `high`) dan diterapkan ke frontmatter agen lewat `mise run agents:sync`. Saat memanggil subagent, **jangan** mengisi parameter `model` atau `effort` di tool Agent. Cukup `subagent_type: "planner" | "executor" | "reviewer" | "explorer"`, maka config itu yang dipakai.
 
 | Opsi | Default | Arti |
 |---|---|---|
