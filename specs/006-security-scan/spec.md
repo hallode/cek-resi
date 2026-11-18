@@ -32,7 +32,7 @@ Tiap service punya ekosistem dependency sendiri (Go, npm, Cargo, uv). Kerentanan
 - **S5** — Tidak ada kerentanan di dependency langsung yang dibiarkan tanpa tindak lanjut: diperbarui, atau dikecualikan sesuai S4.
 
 ## Kriteria penerimaan
-- [ ] `mise run scan` berjalan dari root dan memindai keempat lockfile (keluaran menyebut keempat ekosistem).
+- [x] `mise run scan` berjalan dari root dan memindai keempat lockfile (keluaran menyebut keempat ekosistem).
 - [ ] Hasil pemindaian awal terdokumentasi di PR/commit: temuan dan tindak lanjutnya.
 - [x] `osv-scanner.toml` ada, dan setiap pengecualian memenuhi S4.
 - [ ] `mise run lint` dan `mise run test` tetap tidak membutuhkan jaringan ke OSV.
