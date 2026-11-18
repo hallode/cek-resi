@@ -75,7 +75,12 @@ export async function runCases(
 }
 
 /** Sends one case's request to baseUrl and asserts status + partial body. */
-export async function runCase(t: TestContext, c: SpecCase, baseUrl: string): Promise<void> {
+/** Sends a case's request (raw_body wins over body) and returns status + raw text. */
+export async function sendCase(
+  c: SpecCase,
+  baseUrl: string,
+  signal?: AbortSignal,
+): Promise<{ status: number; text: string }> {
   const body =
     c.request.raw_body ??
     (c.request.body === undefined ? undefined : JSON.stringify(c.request.body));
@@ -83,9 +88,14 @@ export async function runCase(t: TestContext, c: SpecCase, baseUrl: string): Pro
     method: c.request.method,
     headers: body === undefined ? {} : { "content-type": "application/json" },
     body,
+    signal,
   });
-  const text = await res.text();
-  t.assert.equal(res.status, c.expect.status, `status; body = ${text}`);
+  return { status: res.status, text: await res.text() };
+}
+
+export async function runCase(t: TestContext, c: SpecCase, baseUrl: string): Promise<void> {
+  const { status, text } = await sendCase(c, baseUrl);
+  t.assert.equal(status, c.expect.status, `status; body = ${text}`);
   if (c.expect.body !== undefined) {
     t.assert.deepEqual(matchPartial(c.expect.body, JSON.parse(text)), []);
   }
