@@ -99,7 +99,7 @@ Bila ada breaking change, tanya dengan `AskUserQuestion`:
 - Verifikasi: `git ls-remote --heads origin <branch>` sama dengan `git rev-parse HEAD`.
 
 ### 7. Pull request (lewati bila `no-pr`)
-Cek `gh auth status`. Bila PR **terbuka** untuk branch ini sudah ada (`gh pr view --json number,url,body,isDraft,state` dengan `state=OPEN`; PR merged/closed tidak dihitung → buat PR baru), tampilkan URL-nya. Perbarui bagian yang dihasilkan run ini (`gh pr edit <n> --body-file <tmp>.md`; bagian yang belum ada ditambahkan sebelum footer): *Breaking changes* dan *Testing* selalu (hasil langkah 4-5 untuk head baru); *Review* + penanda bila dipanggil dari `dev-flow` dengan hasil review, dan tanpa hasil review → hapus seluruh bagian *Review* beserta penandanya (sesuai "Tanpa hasil review" di bawah). Opsi `draft` aktif dan `isDraft=false` → `gh pr ready <n> --undo`. Sebaliknya (PR draft dijadikan ready) hanya bila user memintanya. Ringkasan dan *Changes* tulisan user dibiarkan; mengubah judul atau bagian lain hanya bila user minta.
+Cek `gh auth status`. Bila PR **terbuka** untuk branch ini sudah ada (`gh pr view --json number,url,body,isDraft,state` dengan `state=OPEN`; PR merged/closed tidak dihitung → buat PR baru), tampilkan URL-nya. Perbarui bagian yang dihasilkan run ini (`gh pr edit <n> --body-file <tmp>.md`; bagian yang belum ada ditambahkan sebelum footer): *Breaking changes* dan *Testing* selalu (hasil langkah 4-5 untuk head baru); *Review* + penanda bila dipanggil dari `dev-flow` dengan hasil review, dan tanpa hasil review → hapus seluruh bagian *Review* beserta penandanya (sesuai "Tanpa hasil review" di bawah). Opsi `draft` aktif dan `isDraft=false` → `gh pr ready <n> --undo`. Sebaliknya: PR masih draft dan opsi `draft` tidak aktif → sebut di laporan dan tawarkan dengan `AskUserQuestion` ("Jadikan ready" → `gh pr ready <n>` / "Biarkan draft"); tidak pernah otomatis. Ringkasan dan *Changes* tulisan user dibiarkan; mengubah judul atau bagian lain hanya bila user minta.
 
 Buat PR:
 ```sh
@@ -142,7 +142,7 @@ Dipanggil dari `dev-flow` dengan hasil review: isi bagian *Review* dengan verdic
 `gh` tidak login / tidak ada: jangan login atas nama user. Tampilkan judul + isi PR siap tempel dan URL `https://github.com/<owner>/<repo>/compare/<base>...<branch>?expand=1` (owner/repo dari `git remote get-url origin`).
 
 ### 8. Laporan
-Branch, commit, hasil test (berangka), breaking change (atau "tidak ada"), URL PR, dan apa yang tidak diperiksa beserta risikonya.
+Branch, commit, hasil test (berangka), breaking change (atau "tidak ada"), URL PR dan status draft-nya, dan apa yang tidak diperiksa beserta risikonya.
 
 ## Batas
 - Tidak pernah: push ke `<base>`, `--force`, `--force-with-lease` tanpa nilai lease dari gerbang tulis ulang, merge PR, menghapus branch remote, `--no-verify`.
