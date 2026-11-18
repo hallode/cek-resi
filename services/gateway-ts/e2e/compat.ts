@@ -15,6 +15,16 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { matchPartial, repoRoot, type SpecFile, sendCase } from "../src/spectest.ts";
 
+// Any other unexpected error (e.g. a spec file with the wrong shape) is also a tool error, not exit 1.
+const toolError = (err: unknown) => {
+  console.error(
+    `compat tidak bisa jalan: ${err instanceof Error ? (err.stack ?? err.message) : err}`,
+  );
+  process.exit(3);
+};
+process.on("uncaughtException", toolError);
+process.on("unhandledRejection", toolError);
+
 const base = process.argv[2] ?? "origin/master";
 const root = repoRoot();
 
