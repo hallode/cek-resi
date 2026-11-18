@@ -55,6 +55,17 @@ Versi toolchain ada di [`mise.toml`](mise.toml) — ubah di sana, bukan di tiap 
 4. Harness `matchPartial` + loader `cases.json` (contoh: `internal/spectest`, `src/spectest.ts`, `tests/spectest/`, `tests/spectest.py`), divalidasi oleh [`specs/matcher-cases.json`](specs/matcher-cases.json).
 5. Spec dimuat lewat daftar eksplisit `SPEC_FILES` di test service; tambahkan entri saat spec-nya diimplementasikan.
 
+## Cara kerja agen
+
+Berlaku untuk semua agen. Versi lengkap ada di `.claude/skills/` (diadaptasi dari [ponytail](https://github.com/dietrichgebert/ponytail), MIT).
+
+- **Perubahan terkecil yang lengkap** (skill `ponytail`): pakai yang sudah ada di repo → stdlib/platform → dependency terpasang → baru tulis kode; tanpa abstraksi atau fitur yang tidak diminta. Malas pada solusi, bukan pada perubahan: pemanggil, test, `cases.json`, dan status spec ikut diselesaikan.
+- **Jangan dipotong:** validasi di batas kepercayaan, format error `{"error": ...}`, keamanan (tidak mencatat nomor resi di log, `textContent` bukan `innerHTML`), aksesibilitas, dan status spec yang jujur.
+- **Tutup tiap balasan** dengan satu atau dua baris: apa yang dilewati atau tidak diperiksa, dan risikonya. Jangan melaporkan hasil yang tidak kamu lihat sendiri (lint/test dijalankan dan dibaca, bukan diasumsikan).
+- **Review** (skill `review-code`): read-only; temuan diverifikasi dan diberi label CONFIRMED/PLAUSIBLE; format Must fix / Should fix / Nice to have dengan `file:baris`.
+- **Tiga peran** (skill `dev-flow`, agen di `.claude/agents/`): planner (read-only) → executor → reviewer (independen, hanya diberi diff dan spec). Pengaturan model/tool/level ada di tabel `dev-flow` dan frontmatter tiap agen.
+- `mise run scan` (kirim daftar paket ke osv.dev) dan aksi keluar (komentar/merge PR, push) hanya atas permintaan atau izin yang jelas.
+
 ## Definition of done
 
 `mise run lint` dan `mise run test` hijau; kontrak/spec masih akurat; kalau UI berubah, cek manual lewat `mise run dev`.
