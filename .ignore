@@ -5,4 +5,3 @@ package-lock.json
 Cargo.lock
 go.sum
 *.db
-plans/
