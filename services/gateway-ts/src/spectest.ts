@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 export type SpecCase = {
   name: string;
   target?: string;
-  request: { method: string; path: string; body?: unknown };
+  request: { method: string; path: string; body?: unknown; raw_body?: string };
   expect: { status: number; body?: unknown };
 };
 
@@ -70,17 +70,23 @@ export async function runCases(
   if (cases.length === 0) throw new Error(`${file.spec}: no cases for target ${target}`);
 
   for (const c of cases) {
-    await t.test(c.name, async (t) => {
-      const res = await fetch(new URL(c.request.path, baseUrl), {
-        method: c.request.method,
-        headers: c.request.body === undefined ? {} : { "content-type": "application/json" },
-        body: c.request.body === undefined ? undefined : JSON.stringify(c.request.body),
-      });
-      const text = await res.text();
-      t.assert.equal(res.status, c.expect.status, `status; body = ${text}`);
-      if (c.expect.body !== undefined) {
-        t.assert.deepEqual(matchPartial(c.expect.body, JSON.parse(text)), []);
-      }
-    });
+    await t.test(c.name, (t) => runCase(t, c, baseUrl));
+  }
+}
+
+/** Sends one case's request to baseUrl and asserts status + partial body. */
+export async function runCase(t: TestContext, c: SpecCase, baseUrl: string): Promise<void> {
+  const body =
+    c.request.raw_body ??
+    (c.request.body === undefined ? undefined : JSON.stringify(c.request.body));
+  const res = await fetch(new URL(c.request.path, baseUrl), {
+    method: c.request.method,
+    headers: body === undefined ? {} : { "content-type": "application/json" },
+    body,
+  });
+  const text = await res.text();
+  t.assert.equal(res.status, c.expect.status, `status; body = ${text}`);
+  if (c.expect.body !== undefined) {
+    t.assert.deepEqual(matchPartial(c.expect.body, JSON.parse(text)), []);
   }
 }

@@ -9,7 +9,7 @@ Repo ini **spec-driven**: perilaku sistem didefinisikan dulu di `specs/`, baru d
 | [000](000-architecture/spec.md) | Arsitektur monorepo polyglot | semua | — | Implemented sebagian (kurang CI) | — |
 | [001](001-tracking-provider/spec.md) | Tracking + provider adapter | `tracking-go` | Go | Draft (API sudah ada) | 000 |
 | [002](002-courier-detection/spec.md) | Deteksi kurir otomatis | `detect-rust` | Rust | Draft | 000, 001 |
-| [003](003-bulk-tracking/spec.md) | Cek banyak resi + permalink | `gateway-ts` | TypeScript | Draft | 001, 002 |
+| [003](003-bulk-tracking/spec.md) | Cek banyak resi + permalink | `gateway-ts` | TypeScript | Draft (gateway-ts sudah ada; e2e menunggu 002; UI `js/bulk.js` belum) | 001, 002 |
 | [004](004-ongkir/spec.md) | Cek ongkir | `ongkir-py` | Python | Draft | 000 |
 | [005](005-frontend-ux/spec.md) | Frontend UI/UX (desain, komponen, aksesibilitas) | `web/` | HTML/CSS/JS | Implemented sebagian (belum diverifikasi di browser) | 000, 001 |
 | [006](006-security-scan/spec.md) | Pemindaian keamanan dependency (OSV) | repo | osv-scanner | Draft (scan awal belum dijalankan) | 000 |
@@ -67,6 +67,7 @@ Satu file per spec, dipakai oleh test di bahasa apa pun.
   - `e2e` — kasus dijalankan ke gateway (`BASE_URL`, default `http://localhost:8080`) dengan semua service yang dibutuhkan hidup.
 - `target` di level case (opsional) meng-override `target` file — dipakai bila satu file berisi kasus untuk beberapa service (mis. health check di 000).
 - `request.body` (opsional) dikirim sebagai JSON dengan `Content-Type: application/json`.
+- `request.raw_body` (opsional, string) dikirim apa adanya dengan `Content-Type: application/json` — untuk menguji body yang bukan JSON valid. Jangan dipakai bersamaan dengan `body`.
 - `expect.status` dibandingkan persis.
 - `expect.body` memakai **partial deep match**:
   - **Object**: setiap key yang disebut harus ada dan cocok; key lain di respon diabaikan.

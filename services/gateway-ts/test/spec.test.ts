@@ -6,14 +6,17 @@ import { listen } from "./helpers.ts";
 
 // Spec cases this service implements at `level: service`. Add an entry when a
 // spec owned by gateway-ts is implemented.
-const SPEC_FILES = ["specs/000-architecture/cases.json"];
+const SPEC_FILES = ["specs/000-architecture/cases.json", "specs/003-bulk-tracking/cases.json"];
 
 for (const rel of SPEC_FILES) {
   const file = loadJSON(rel);
   test(file.spec, async (t) => {
     const base = await listen(
       t,
-      createApp({ webDir: join(repoRoot(), "web"), upstreams: { tracking: "http://127.0.0.1:1" } }),
+      createApp({
+        webDir: join(repoRoot(), "web"),
+        upstreams: { tracking: "http://127.0.0.1:1", detect: "http://127.0.0.1:1" },
+      }),
     );
     await runCases(t, file, "gateway-ts", base);
   });

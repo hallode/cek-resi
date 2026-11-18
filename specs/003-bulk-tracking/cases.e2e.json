@@ -66,6 +66,23 @@
         }
       },
       "expect": { "status": 200, "body": { "results": { "$length": 10 } } }
+    },
+    {
+      "name": "detection errors are mapped per item",
+      "request": {
+        "method": "POST",
+        "path": "/api/track/bulk",
+        "body": { "items": [{ "awb": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" }, { "awb": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "courier": "jne" }] }
+      },
+      "expect": {
+        "status": 200,
+        "body": {
+          "results": [
+            { "awb": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "courier": null, "detected": false, "ok": false, "error": "awb terlalu panjang" },
+            { "awb": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "courier": "jne", "detected": false, "ok": false, "error": "resi tidak ditemukan" }
+          ]
+        }
+      }
     }
   ]
 }

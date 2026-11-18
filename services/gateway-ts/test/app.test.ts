@@ -12,7 +12,14 @@ async function startGateway(
   trackingUrl: string,
   upstreamTimeoutMs = 3000,
 ): Promise<string> {
-  return listen(t, createApp({ webDir, upstreams: { tracking: trackingUrl }, upstreamTimeoutMs }));
+  return listen(
+    t,
+    createApp({
+      webDir,
+      upstreams: { tracking: trackingUrl, detect: "http://127.0.0.1:1" },
+      upstreamTimeoutMs,
+    }),
+  );
 }
 
 test("serves index.html at /", async (t) => {
