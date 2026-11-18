@@ -99,7 +99,7 @@ Bila ada breaking change, tanya dengan `AskUserQuestion`:
 - Verifikasi: `git ls-remote --heads origin <branch>` sama dengan `git rev-parse HEAD`.
 
 ### 7. Pull request (lewati bila `no-pr`)
-Cek `gh auth status`. Bila PR untuk branch ini sudah ada (`gh pr view --json url`), tampilkan URL-nya saja; mengubah judul/isi PR yang sudah ada hanya bila user minta.
+Cek `gh auth status`. Bila PR untuk branch ini sudah ada (`gh pr view --json url,body`), tampilkan URL-nya. Dipanggil dari `dev-flow` dengan hasil review → ganti hanya bagian *Review* beserta penandanya di body PR (`gh pr edit <n> --body-file <tmp>.md`, bagian lain dibiarkan) supaya penandanya mengikuti head baru; selain itu mengubah judul/isi PR yang sudah ada hanya bila user minta.
 
 Buat PR:
 ```sh
@@ -134,7 +134,7 @@ Dipanggil dari `dev-flow` dengan hasil review: isi bagian *Review* dengan verdic
 ```
 <!-- pre-pr-review: head=<sha> fp=<sidik isi> verdict=<siap-merge|perbaiki-dulu> must=<n> -->
 ```
-- `fp` (sidik isi): hitung ulang sekarang, setelah langkah 2a: `git diff-tree -r --no-renames "$(git merge-base origin/<base> HEAD)" HEAD | git hash-object --stdin`. Harus 40 hex, **bukan** `e69de29bb2d1d6434b8b29ae775ad8c2e48c5391` (hash isi kosong: diff kosong atau perintah gagal), dan **sama** dengan sidik isi dari dev-flow. Berbeda (isi berubah setelah review, mis. resolusi konflik rebase) atau tidak valid → jangan tulis penanda; tulis "Review sebelum PR tidak berlaku: isi berubah setelah review". Sidik ini membandingkan blob per file, jadi perubahan whitespace/indentasi pun terdeteksi; rebase yang tidak menyentuh file PR tidak mengubahnya.
+- `fp` (sidik isi): hitung ulang sekarang, setelah langkah 2a: `git diff-tree -z -r --no-renames "$(git merge-base origin/<base> HEAD)" HEAD | git hash-object --stdin`. Harus 40 hex, **bukan** `e69de29bb2d1d6434b8b29ae775ad8c2e48c5391` (hash isi kosong: diff kosong atau perintah gagal), dan **sama** dengan sidik isi dari dev-flow. Berbeda (isi berubah setelah review, mis. resolusi konflik rebase) atau tidak valid → jangan tulis penanda; tulis "Review sebelum PR tidak berlaku: isi berubah setelah review". Sidik ini membandingkan blob per file, jadi perubahan whitespace/indentasi pun terdeteksi; rebase yang tidak menyentuh file PR tidak mengubahnya.
 - `head`: `git rev-parse HEAD` yang di-push.
 - Verdict review "tidak bisa dinilai" → jangan tulis penanda.
 - Tanpa hasil review (mis. `/push-pr` langsung atau `review=never`): tanpa bagian *Review* dan tanpa penanda. `review-pr` akan mereview penuh.

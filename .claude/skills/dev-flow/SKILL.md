@@ -50,7 +50,7 @@ Commit (di branch fitur, bukan `master`; stage semua file tugas ini, termasuk fi
 - `review=never`: langsung ke langkah 6 (PR tanpa penanda review).
 
 ### 5. Review (subagent `reviewer`)
-Panggil Agent `subagent_type: "reviewer"` dengan **konteks segar**: rentang commit `$(git merge-base origin/master HEAD)..HEAD` (bukan `git diff` working tree, yang tidak memuat file baru) dan spec terkait, **bukan** ringkasan atau klaim executor, agar tinjauannya independen. Catat `HEAD` yang direview. Tampilkan laporannya ke user (Must fix / Should fix / Nice to have + verdict).
+Panggil Agent `subagent_type: "reviewer"` dengan **konteks segar**: rentang commit `$(git merge-base origin/master HEAD)..HEAD` (bukan `git diff` working tree, yang tidak memuat file baru) dan spec terkait, **bukan** ringkasan atau klaim executor, agar tinjauannya independen. Catat `<sha-direview>` (= `HEAD` yang diberikan ke reviewer) dan, **tepat setelah reviewer selesai**, sidik isinya: `git diff-tree -z -r --no-renames "$(git merge-base origin/master <sha-direview>)" <sha-direview> | git hash-object --stdin` (hasil `e69de29bb2d1d6434b8b29ae775ad8c2e48c5391` = diff kosong atau perintah gagal → tidak ada sidik isi). Tampilkan laporannya ke user (Must fix / Should fix / Nice to have + verdict).
 
 Bila ada **Must fix** atau **Should fix**, tanya dengan `AskUserQuestion`:
 - **"Perbaiki"**: executor memperbaiki dengan daftar temuannya, dan diminta memperbaiki **seluruh kelas masalahnya** (cari tempat lain dengan pola yang sama, bukan hanya baris yang disebut). Commit perbaikannya, jalankan lint/test, lalu reviewer meninjau ulang seluruh rentang. Maksimal `rounds` putaran.
@@ -59,7 +59,7 @@ Bila ada **Must fix** atau **Should fix**, tanya dengan `AskUserQuestion`:
 Nice to have tidak dikerjakan; tulis di isi PR. Berhenti memutar begitu tidak ada Must fix / Should fix.
 
 ### 6. Selesai
-- Hasil review untuk `push-pr`: verdict, Must fix / Should fix / Nice to have yang dibiarkan, dan **sidik isi** rentang yang direview terakhir, dihitung pada `HEAD` yang direview: `git diff-tree -r --no-renames "$(git merge-base origin/master HEAD)" HEAD | git hash-object --stdin`. Hasil `e69de29bb2d1d6434b8b29ae775ad8c2e48c5391` = diff kosong atau perintah gagal → tidak ada sidik isi. Ada commit setelah review terakhir (`HEAD` berubah) → review ulang, atau PR tanpa penanda.
+- Hasil review untuk `push-pr`: verdict, Must fix / Should fix / Nice to have yang dibiarkan, dan **sidik isi** dari review terakhir (langkah 5, bukan dihitung ulang di sini). Commit setelah review terakhir tidak perlu dicek manual: sidik isi di `push-pr` akan berbeda sehingga PR dibuat tanpa penanda; review ulang bila ingin penanda.
 - Tanya dengan `AskUserQuestion` apakah dibuatkan PR. Sebutkan dulu bila lint/test merah atau masih ada Must fix.
   - **"Ya, buat PR"**: jalankan skill [push-pr](../push-pr/SKILL.md) (cek nama, lint/test/e2e, breaking change, push, PR) dengan hasil review di atas, supaya isi PR memuat [penanda review](../push-pr/SKILL.md#penanda-review-sebelum-pr). Pakai opsi `draft` bila lint/test merah atau ada Must fix tersisa; temuan yang dibiarkan ditulis di isi PR. Tampilkan URL PR-nya.
   - **"Tidak, simpan lokal"**: jangan push; sebutkan nama branch-nya.
