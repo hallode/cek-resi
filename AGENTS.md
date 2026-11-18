@@ -22,7 +22,7 @@ Aplikasi cek resi multi-kurir (data **dummy**; jangan memanggil API kurir asli a
 | Toolchain / task | `mise.toml` |
 | Model/effort agen | `.claude/agents.toml` lalu `mise run agents:sync` |
 | Tambah service baru | spec 000 + checklist di bawah |
-| Review | skill `review-code`: diff + spec terkait + pemanggil (via grep) |
+| Review | skill `review-code`: diff + spec terkait + pemanggil (via grep). PR GitHub (review + komentar inline + merge): skill `review-pr` |
 | Pertanyaan sempit soal kode | subagent `explorer` (jawaban + `file:baris`), bukan membaca banyak file sendiri |
 
 ## Service
@@ -56,7 +56,7 @@ Detail di `.claude/skills/` (diadaptasi dari [ponytail](https://github.com/dietr
 - **Jangan dipotong:** validasi batas kepercayaan, error `{"error": ...}`, keamanan (nomor resi tidak masuk log, `textContent` bukan `innerHTML`), aksesibilitas.
 - **Alur default tugas coding non-sepele** (skill `dev-flow`): subagent planner membuat rencana → user menyetujui → subagent executor mengerjakan → user ditanya mau review → subagent reviewer → user ditanya mau PR; hotfix (`mode=hotfix`) melewati planner; subagent explorer untuk pertanyaan sempit. Model/effort tiap subagent dari `.claude/agents.toml` (jangan override saat memanggil). Review (skill `review-code`) read-only dengan temuan terverifikasi.
 - **Selalu branch baru dari `master`** sebelum edit pertama, termasuk tugas sepele: `feat/` `hotfix/` `fix/` `refactor/` `chore/` `docs/` (detail di skill `dev-flow`, bagian Branch). Tidak commit langsung ke `master`; setelah commit, tanya user mau dibuatkan PR atau tidak.
-- Jangan melaporkan hasil yang tidak kamu lihat; tutup balasan dengan apa yang dilewati dan risikonya. Push, komentar/merge PR, dan `mise run scan` hanya atas izin jelas.
+- Jangan melaporkan hasil yang tidak kamu lihat; tutup balasan dengan apa yang dilewati dan risikonya. Push, komentar/merge PR, dan `mise run scan` hanya atas izin jelas; meminta review/cek/merge PR = izin skill `review-pr` memposting review dan merge bila gerbangnya lolos.
 
 ## Checklist service baru
 `services/<nama>/AGENTS.md` + `CLAUDE.md` (symlink ke `AGENTS.md`) · `GET /health` dan env `PORT` · task `setup|dev|test|lint|fmt:<alias>` di `mise.toml` · harness spectest divalidasi `specs/matcher-cases.json` · baris di tabel Service dan Peta konteks.
