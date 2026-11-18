@@ -8,7 +8,7 @@ Repo ini **spec-driven**: perilaku sistem didefinisikan dulu di `specs/`, baru d
 |---|---|---|---|---|---|
 | [000](000-architecture/spec.md) | Arsitektur monorepo polyglot | semua | — | Implemented sebagian (kurang CI) | — |
 | [001](001-tracking-provider/spec.md) | Tracking + provider adapter | `tracking-go` | Go | Draft (API sudah ada) | 000 |
-| [002](002-courier-detection/spec.md) | Deteksi kurir otomatis | `detect-rust` | Rust | Draft | 000, 001 |
+| [002](002-courier-detection/spec.md) | Deteksi kurir otomatis | `detect-rust` | Rust | Implemented (kecuali CI) | 000, 001 |
 | [003](003-bulk-tracking/spec.md) | Cek banyak resi + permalink | `gateway-ts` | TypeScript | Draft | 001, 002 |
 | [004](004-ongkir/spec.md) | Cek ongkir | `ongkir-py` | Python | Implemented | 000 |
 | [005](005-frontend-ux/spec.md) | Frontend UI/UX (desain, komponen, aksesibilitas) | `web/` | HTML/CSS/JS | Implemented sebagian (belum diverifikasi di browser) | 000, 001 |

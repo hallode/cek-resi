@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Implemented (kecuali CI) |
 | Service pemilik | `detect-rust` (Rust) |
 | Service lain yang tersentuh | `gateway-ts` (track tanpa kurir), `web/` |
 | Bergantung pada | 000, 001 |
@@ -76,12 +76,12 @@ Jika `courier` diisi, gateway hanya proxy biasa ke tracking-go (perilaku 001, ta
 - Jika error "kurir tidak terdeteksi…", tampilkan pesannya dan biarkan user memilih kurir manual.
 
 ## Kriteria penerimaan
-- [ ] `cases.json` lulus di `cargo test` (test membaca file via `include_str!`).
-- [ ] `cases.e2e.json` lulus via gateway dengan tracking-go + detect-rust hidup.
-- [ ] Contoh di tabel R4 = test unit tambahan di Rust.
+- [x] `cases.json` lulus di `cargo test` (test membaca file via `include_str!`).
+- [x] `cases.e2e.json` lulus via gateway dengan tracking-go + detect-rust hidup.
+- [x] Contoh di tabel R4 = test unit tambahan di Rust.
 
 ## Tasks
-- [ ] detect-rust: `src/patterns.rs` (tabel R4, `regex` dikompilasi sekali via `LazyLock`), handler `/api/detect`, `/health`.
-- [ ] detect-rust: `tests/spec.rs` + `matchPartial`.
-- [ ] gateway-ts: cabang `track` tanpa courier (R1–R3 pada sisi gateway), env `DETECT_URL`.
-- [ ] web: tombol "Otomatis", label hasil deteksi.
+- [x] detect-rust: `src/patterns.rs` (tabel R4, `regex` dikompilasi sekali via `LazyLock`), handler `/api/detect`, `/health`.
+- [x] detect-rust: `tests/spec.rs` + `matchPartial`.
+- [x] gateway-ts: cabang `track` tanpa courier (R1–R3 pada sisi gateway), env `DETECT_URL`.
+- [x] web: tombol "Otomatis", label hasil deteksi.

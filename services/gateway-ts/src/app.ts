@@ -1,9 +1,10 @@
 import { createServer, type Server } from "node:http";
+import { trackAuto } from "./autotrack.ts";
 import { sendError, sendJSON } from "./http.ts";
 import { proxy } from "./proxy.ts";
 import { serveStatic } from "./static.ts";
 
-export type Upstream = "tracking" | "ongkir";
+export type Upstream = "tracking" | "detect" | "ongkir";
 
 export type Config = {
   webDir: string;
@@ -18,6 +19,7 @@ export type Config = {
 const ROUTES: ReadonlyArray<{ path: string; upstream: Upstream }> = [
   { path: "/api/couriers", upstream: "tracking" },
   { path: "/api/track", upstream: "tracking" },
+  { path: "/api/detect", upstream: "detect" },
   { path: "/api/ongkir", upstream: "ongkir" },
   { path: "/api/ongkir/cities", upstream: "ongkir" },
 ];
@@ -31,6 +33,16 @@ export function createApp(cfg: Config): Server {
 
       if (url.pathname === "/health") {
         sendJSON(res, 200, { status: "ok", service: "gateway-ts" });
+        return;
+      }
+
+      // Spec 002: /api/track without courier → detect, then try each candidate.
+      if (
+        url.pathname === "/api/track" &&
+        req.method === "GET" &&
+        !url.searchParams.get("courier")?.trim()
+      ) {
+        await trackAuto(res, url.searchParams.get("awb") ?? "", cfg.upstreams, timeoutMs);
         return;
       }
 

@@ -6,7 +6,7 @@ Aplikasi cek resi multi-kurir (mirip cekresi.com/top) dengan data dummy. Monorep
 |---|---|---|
 | `gateway-ts` — serve UI + proxy API | TypeScript | 8080 |
 | `tracking-go` — data resi & kurir | Go | 8081 |
-| `detect-rust` — deteksi kurir (skeleton) | Rust | 8082 |
+| `detect-rust` — deteksi kurir dari nomor resi | Rust | 8082 |
 | `ongkir-py` — cek ongkir (skeleton) | Python | 8083 |
 
 ## Quickstart
@@ -23,6 +23,13 @@ mise run scan       # cek kerentanan dependency ke osv.dev (butuh jaringan)
 ```
 
 Satu service saja: `mise run test:detect`, `mise run dev:tracking`, dst (`tracking|gateway|detect|ongkir`).
+
+Test e2e (semua service harus hidup lewat `mise run dev`): `cd services/gateway-ts && npm run test:e2e`.
+
+```sh
+curl 'localhost:8080/api/detect?awb=004000123456'   # kandidat kurir
+curl 'localhost:8080/api/track?awb=JP1234567890'    # tanpa courier → deteksi otomatis
+```
 
 ## Resi dummy
 
