@@ -77,6 +77,7 @@ main { padding-top: 24px; padding-bottom: 32px; }
 }
 .chip:hover { background: var(--surface-2); }
 .chip.is-active { background: var(--brand); border-color: var(--brand); color: var(--on-brand); font-weight: 600; }
+.chip.is-detected { border-color: var(--brand); border-style: dashed; }
 .chip-group { display: inline-flex; align-items: center; }
 .chip-group .chip:first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; border-right: 0; padding-right: 12px; }
 .chip-x { width: 44px; padding: 0; border-top-left-radius: 0; border-bottom-left-radius: 0; color: var(--muted); }
@@ -227,6 +228,28 @@ main { padding-top: 24px; padding-bottom: 32px; }
 @media (min-width: 640px) {
   .chips-scroll { flex-wrap: wrap; overflow: visible; margin-inline: 0; padding-inline: 0; }
   .btn-block { width: auto; min-width: 200px; }
+}
+
+/* ---------- ongkir (spec 004): select, dimensions, price table ---------- */
+.select {
+  width: 100%; min-height: 52px; padding: 0 16px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
+  font: inherit; font-size: 16px; color: var(--text);
+}
+.dims-toggle { display: block; margin-top: 16px; min-height: 44px; }
+.dims { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: end; }
+.dims .input-wrap input { padding-right: 12px; font-size: 16px; }
+
+.quotes { width: 100%; margin-top: 16px; border-collapse: collapse; font-size: 14px; }
+.quotes th, .quotes td { padding: 10px 6px; text-align: left; vertical-align: middle; border-bottom: 1px solid var(--border); }
+.quotes th { color: var(--muted); font-weight: 500; }
+.quotes td:nth-child(2), .quotes td:nth-child(3) { white-space: nowrap; }
+#o-result-title:focus { outline: none; }
+.quotes .num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.quotes .is-cheapest td { font-weight: 600; }
+.tag {
+  display: block; width: fit-content; margin-top: 2px; padding: 2px 8px;
+  border-radius: var(--radius-pill); background: var(--ok-bg); color: var(--ok-fg); font-size: 12px; font-weight: 600;
 }
 
 footer { padding: 16px; text-align: center; }

@@ -15,7 +15,11 @@ for (const rel of SPEC_FILES) {
       t,
       createApp({
         webDir: join(repoRoot(), "web"),
-        upstreams: { tracking: "http://127.0.0.1:1", detect: "http://127.0.0.1:1" },
+        upstreams: {
+          tracking: "http://127.0.0.1:1",
+          detect: "http://127.0.0.1:1",
+          ongkir: "http://127.0.0.1:1",
+        },
       }),
     );
     await runCases(t, file, "gateway-ts", base);

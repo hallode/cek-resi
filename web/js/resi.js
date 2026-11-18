@@ -1,4 +1,4 @@
-// Tab "Cek Resi" (spec 001, 005). Only fetches and renders; business logic lives in the backend.
+// Tab "Cek Resi" (spec 001, 002, 005). Only fetches and renders; business logic lives in the backend.
 
 import { replaceParams } from "./router.js";
 import {
@@ -9,6 +9,10 @@ const COURIER_KEY = "cekresi.courier";
 const HISTORY_KEY = "cekresi.history";
 const HISTORY_MAX = 10;
 const REQUEST_TIMEOUT_MS = 10_000;
+
+// "Otomatis": no courier is sent; the gateway detects it from the AWB (spec 002).
+const AUTO = "auto";
+const AUTO_OPTION = { code: AUTO, name: "Otomatis" };
 
 // Demo shortcuts shown in the empty state (dummy data, see README).
 const EXAMPLES = [
@@ -22,18 +26,20 @@ const STEPS = ["PICKED_UP", "IN_TRANSIT", "OUT_FOR_DELIVERY", "DELIVERED"];
 const $ = (id) => document.getElementById(id);
 const state = {
   couriers: [],
-  selected: null,
+  selected: AUTO,
+  detected: null, // courier code found by the last automatic search
   current: null, // { courier, awb } currently displayed
   controller: null, // AbortController of the in-flight request
 };
 
 const normalizeAwb = (s) => s.trim().toUpperCase();
-const courierName = (code) => state.couriers.find((c) => c.code === code)?.name ?? code;
+const courierOptions = () => [AUTO_OPTION, ...state.couriers];
+const courierName = (code) => courierOptions().find((c) => c.code === code)?.name ?? code;
 
 // ------------------------------------------------------------------ init
 
 export function init() {
-  state.selected = localStorage.getItem(COURIER_KEY);
+  state.selected = localStorage.getItem(COURIER_KEY) ?? AUTO;
 
   $("track-form").addEventListener("submit", onSubmit);
   $("awb").addEventListener("input", () => {
@@ -80,9 +86,7 @@ async function loadCouriers() {
     const res = await fetch("/api/couriers");
     if (!res.ok) throw new Error(String(res.status));
     state.couriers = await res.json();
-    if (!state.couriers.some((c) => c.code === state.selected)) {
-      state.selected = state.couriers[0]?.code ?? null;
-    }
+    if (!courierOptions().some((c) => c.code === state.selected)) state.selected = AUTO;
     renderCouriers();
     renderHistory();
     if (!state.current) renderEmpty();
@@ -107,11 +111,12 @@ function renderCouriersLoading() {
 
 function renderCouriers() {
   $("couriers").replaceChildren(
-    ...state.couriers.map((c) => {
+    ...courierOptions().map((c) => {
       const active = c.code === state.selected;
+      const detected = !active && c.code === state.detected;
       return h("button", {
         type: "button",
-        class: `chip${active ? " is-active" : ""}`,
+        class: `chip${active ? " is-active" : ""}${detected ? " is-detected" : ""}`,
         role: "radio",
         "aria-checked": String(active),
         tabindex: active ? "0" : "-1",
@@ -124,6 +129,7 @@ function renderCouriers() {
 
 function selectCourier(code, { focus = false } = {}) {
   state.selected = code;
+  state.detected = null;
   localStorage.setItem(COURIER_KEY, code);
   renderCouriers();
   if (focus) {
@@ -136,7 +142,7 @@ function selectCourier(code, { focus = false } = {}) {
 /** Radio-group keyboard support: arrows move and select, Home/End jump. */
 function onCourierKey(ev) {
   const keys = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 };
-  const codes = state.couriers.map((c) => c.code);
+  const codes = courierOptions().map((c) => c.code);
   if (codes.length === 0) return;
   const i = Math.max(0, codes.indexOf(state.selected));
   let next;
@@ -195,6 +201,7 @@ async function search(courier, awb) {
   state.controller = controller;
 
   state.selected = courier;
+  state.detected = null;
   localStorage.setItem(COURIER_KEY, courier);
   renderCouriers();
   $("awb").value = awb;
@@ -205,18 +212,25 @@ async function search(courier, awb) {
   announce("Mencari paket…");
 
   try {
-    const url = `/api/track?courier=${encodeURIComponent(courier)}&awb=${encodeURIComponent(awb)}`;
-    const res = await fetch(url, {
+    const params = new URLSearchParams({ awb });
+    if (courier !== AUTO) params.set("courier", courier);
+    const res = await fetch(`/api/track?${params}`, {
       signal: AbortSignal.any([controller.signal, AbortSignal.timeout(REQUEST_TIMEOUT_MS)]),
     });
     const body = await res.json().catch(() => ({}));
     if (controller !== state.controller) return; // superseded by a newer search
 
     if (res.ok) {
-      state.current = { courier, awb: body.awb };
+      // Store the resolved courier, so history and permalink skip detection next time.
+      const found = body.courier.code;
+      if (body.detected) {
+        state.detected = found;
+        renderCouriers();
+      }
+      state.current = { courier: found, awb: body.awb };
       renderResult(body);
-      addHistory(courier, body.awb);
-      replaceParams("resi", { courier, awb: body.awb });
+      addHistory(found, body.awb);
+      replaceParams("resi", { courier: found, awb: body.awb });
       announce(`Paket ditemukan. Status: ${statusOf(body.status).label}.`);
       $("result-title")?.focus();
     } else if (res.status === 400) {
@@ -357,6 +371,9 @@ function renderResult(r) {
           h("div", {},
             h("h2", { id: "result-title", class: "result-title", tabindex: "-1", text: r.awb }),
             h("p", { class: "muted small", text: r.courier.name }),
+            r.detected
+              ? h("p", { class: "muted small", text: `Kurir terdeteksi otomatis: ${r.courier.name}` })
+              : null,
           ),
         ),
         copyButton({ label: "Salin resi", text: r.awb }),

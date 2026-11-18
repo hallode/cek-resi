@@ -8,6 +8,7 @@ const app = createApp({
   upstreams: {
     tracking: process.env.TRACKING_URL ?? "http://localhost:8081",
     detect: process.env.DETECT_URL ?? "http://localhost:8082",
+    ongkir: process.env.ONGKIR_URL ?? "http://localhost:8083",
   },
 });
 

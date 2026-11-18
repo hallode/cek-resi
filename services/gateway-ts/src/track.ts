@@ -14,29 +14,31 @@ const SINGLE_ERRORS: Record<Failure, [number, string]> = {
   unsupported_courier: [501, "kurir belum didukung"],
   invalid: [400, "permintaan tidak valid"],
   no_candidate: [400, "kurir tidak terdeteksi, pilih kurir secara manual"],
-  awb_too_long: [400, "awb terlalu panjang"],
+  detect_rejected: [400, "permintaan tidak valid"], // detect-rust's own response is sent instead
   tracking_unavailable: [502, "layanan tracking tidak tersedia"],
   detect_unavailable: [502, "layanan deteksi tidak tersedia"],
 };
 
 class BodyTooLarge extends Error {}
 
-/** True when /api/track has an awb but no courier, so the gateway must detect it. */
+/** True when /api/track has no (or a blank) courier, so the gateway must detect it (002). */
 export function isAutoTrack(url: URL): boolean {
-  const courier = (url.searchParams.get("courier") ?? "").trim();
-  const awb = (url.searchParams.get("awb") ?? "").trim();
-  return courier === "" && awb !== "";
+  return (url.searchParams.get("courier") ?? "").trim() === "";
 }
 
 export async function handleAutoTrack(res: ServerResponse, url: URL, up: Upstreams): Promise<void> {
-  const awb = (url.searchParams.get("awb") ?? "").trim().toUpperCase();
-  const r = await resolveTrack(up, "", awb);
+  // The AWB goes to detect-rust as given; it validates and normalizes it (002 R1).
+  const r = await resolveTrack(up, "", url.searchParams.get("awb") ?? "");
   if (!r.ok) {
+    if (r.upstream) {
+      sendJSON(res, r.upstream.status, r.upstream.body);
+      return;
+    }
     const [status, message] = SINGLE_ERRORS[r.failure];
     sendError(res, status, message);
     return;
   }
-  sendJSON(res, 200, { ...r.track, detected: true });
+  sendJSON(res, 200, { ...(r.track as object), detected: true });
 }
 
 export async function handleBulk(

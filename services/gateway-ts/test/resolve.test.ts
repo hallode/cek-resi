@@ -90,7 +90,7 @@ describe("detection", () => {
     assert.ok(r.ok);
     assert.equal(r.courier, "tiki");
     assert.equal(r.detected, true);
-    assert.deepEqual(r.track.history, [EVENT]);
+    assert.deepEqual((r.track as { history: unknown }).history, [EVENT]);
     assert.deepEqual(fake.calls, [
       "/api/detect?awb=0040",
       "/api/track?courier=sicepat&awb=0040",
@@ -120,23 +120,31 @@ describe("detection", () => {
     }
   });
 
-  test("first non-404 failure wins when nothing is unavailable", async () => {
+  test("candidate 400/501 count as a miss, like 404 (002)", async () => {
     fake.handler = detects(["a", "b", "c"], {
       b: { status: 501, body: { error: "kurir belum didukung" } },
       c: { status: 400, body: { error: "kurir tidak dikenal" } },
     });
-    assert.deepEqual(await resolveTrack(up, "", "0040"), {
+    assert.deepEqual(await resolveTrack(up, "", "0040"), { ok: false, failure: "not_found" });
+  });
+
+  test("detect 4xx is returned as-is for the caller to pass on", async () => {
+    const body = { error: "awb terlalu panjang" };
+    fake.handler = () => ({ status: 400, body });
+    assert.deepEqual(await resolveTrack(up, "", "A".repeat(41)), {
       ok: false,
-      failure: "unsupported_courier",
+      failure: "detect_rejected",
+      upstream: { status: 400, body },
     });
   });
 
-  test("awb too long", async () => {
-    fake.handler = () => ({ status: 400, body: { error: "awb terlalu panjang" } });
-    assert.deepEqual(await resolveTrack(up, "", "A".repeat(41)), {
-      ok: false,
-      failure: "awb_too_long",
-    });
+  test("tracking uses the AWB normalized by detect", async () => {
+    fake.handler = (path, q) =>
+      path === "/api/detect"
+        ? { status: 200, body: { awb: "JP1", candidates: [{ code: "jnt" }] } }
+        : track("jnt", q.get("awb") ?? "");
+    await resolveTrack(up, "", " jp1 ");
+    assert.deepEqual(fake.calls, ["/api/detect?awb=+jp1+", "/api/track?courier=jnt&awb=JP1"]);
   });
 
   test("detect timeout", async () => {

@@ -8,55 +8,69 @@ export type Upstreams = {
   call: Call;
 };
 
-export type TrackEvent = { time: string; location: string; description: string };
-
-export type TrackBody = { status: string; history: TrackEvent[]; [key: string]: unknown };
-
 export type Failure =
   | "not_found"
   | "unknown_courier"
   | "unsupported_courier"
   | "invalid"
   | "no_candidate"
-  | "awb_too_long"
+  | "detect_rejected"
   | "tracking_unavailable"
   | "detect_unavailable";
 
 export type Resolved =
-  | { ok: true; courier: string; detected: boolean; track: TrackBody }
-  | { ok: false; failure: Failure };
+  | { ok: true; courier: string; detected: boolean; track: unknown }
+  | {
+      ok: false;
+      failure: Failure;
+      /** Only for detect_rejected: detect-rust's 4xx response, passed on as-is (002). */
+      upstream?: { status: number; body: unknown };
+    };
 
-// resolveTrack expects courier and awb already normalized (K3).
-// An empty courier means "detect it" (002).
+/** Tracking statuses that mean "not this courier, try the next candidate" (002). */
+const MISS = new Set([400, 404, 501]);
+
+/**
+ * Explicit courier: one tracking call. Empty courier: ask detect-rust, then try
+ * each candidate in order; the first 200 wins (002). `track` is tracking-go's
+ * body, unchanged.
+ */
 export async function resolveTrack(up: Upstreams, courier: string, awb: string): Promise<Resolved> {
   if (courier) {
     return trackOne(up, courier, awb, false);
   }
 
-  const res = await up.call(`${up.detectURL}/api/detect?awb=${encodeURIComponent(awb)}`);
+  const res = await up.call(withQuery(up.detectURL, "/api/detect", { awb }));
   if (res.kind === "unavailable" || res.status >= 500) {
     return { ok: false, failure: "detect_unavailable" };
   }
   if (res.status !== 200) {
-    const tooLong = res.status === 400 && errorMessage(res.body) === "awb terlalu panjang";
-    return { ok: false, failure: tooLong ? "awb_too_long" : "invalid" };
+    return {
+      ok: false,
+      failure: "detect_rejected",
+      upstream: { status: res.status, body: res.body },
+    };
   }
-  const candidates = candidateCodes(res.body);
-  if (candidates === null) {
+  const detected = parseDetect(res.body);
+  if (detected === null) {
     console.error("detect: unexpected response body");
     return { ok: false, failure: "detect_unavailable" };
   }
-  if (candidates.length === 0) {
+  if (detected.candidates.length === 0) {
     return { ok: false, failure: "no_candidate" };
   }
 
-  const failures: Failure[] = [];
-  for (const code of candidates) {
-    const r = await trackOne(up, code, awb, true);
+  // Tracking uses the AWB as normalized by detect-rust (002 R1).
+  const normalized = detected.awb ?? awb;
+  let unavailable = false;
+  for (const code of detected.candidates) {
+    const r = await trackOne(up, code, normalized, true);
     if (r.ok) return r;
-    failures.push(r.failure);
+    // R5a: a down tracking service must not read as "not found", but the
+    // remaining candidates are still tried.
+    if (r.failure === "tracking_unavailable") unavailable = true;
   }
-  return { ok: false, failure: pickFailure(failures) };
+  return { ok: false, failure: unavailable ? "tracking_unavailable" : "not_found" };
 }
 
 async function trackOne(
@@ -65,18 +79,10 @@ async function trackOne(
   awb: string,
   detected: boolean,
 ): Promise<Resolved> {
-  const url = `${up.trackingURL}/api/track?courier=${encodeURIComponent(courier)}&awb=${encodeURIComponent(awb)}`;
-  const res = await up.call(url);
-  if (res.kind === "unavailable") {
-    return { ok: false, failure: "tracking_unavailable" };
-  }
-  if (res.status === 200) {
-    if (!isTrackBody(res.body)) {
-      console.error("tracking: unexpected response body");
-      return { ok: false, failure: "tracking_unavailable" };
-    }
-    return { ok: true, courier, detected, track: res.body };
-  }
+  const res = await up.call(withQuery(up.trackingURL, "/api/track", { courier, awb }));
+  if (res.kind === "unavailable") return { ok: false, failure: "tracking_unavailable" };
+  if (res.status === 200) return { ok: true, courier, detected, track: res.body };
+  if (detected && MISS.has(res.status)) return { ok: false, failure: "not_found" };
   if (res.status === 404) return { ok: false, failure: "not_found" };
   if (res.status === 501) return { ok: false, failure: "unsupported_courier" };
   if (res.status >= 500) return { ok: false, failure: "tracking_unavailable" };
@@ -86,13 +92,13 @@ async function trackOne(
   return { ok: false, failure: "invalid" };
 }
 
-// pickFailure applies R5a: unavailable wins, then all-404, then the first non-404.
-function pickFailure(failures: Failure[]): Failure {
-  if (failures.includes("tracking_unavailable")) return "tracking_unavailable";
-  return failures.find((f) => f !== "not_found") ?? "not_found";
+function withQuery(base: string, path: string, params: Record<string, string>): string {
+  const url = new URL(path, base);
+  for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
+  return url.toString();
 }
 
-function candidateCodes(body: unknown): string[] | null {
+function parseDetect(body: unknown): { awb: string | null; candidates: string[] } | null {
   if (
     !body ||
     typeof body !== "object" ||
@@ -101,21 +107,11 @@ function candidateCodes(body: unknown): string[] | null {
   ) {
     return null;
   }
-  const codes: string[] = [];
+  const candidates: string[] = [];
   for (const c of body.candidates) {
     if (!c || typeof c.code !== "string") return null;
-    codes.push(c.code);
+    candidates.push(c.code);
   }
-  return codes;
-}
-
-function isTrackBody(body: unknown): body is TrackBody {
-  return (
-    !!body &&
-    typeof body === "object" &&
-    "status" in body &&
-    typeof body.status === "string" &&
-    "history" in body &&
-    Array.isArray(body.history)
-  );
+  const awb = "awb" in body && typeof body.awb === "string" ? body.awb : null;
+  return { awb, candidates };
 }

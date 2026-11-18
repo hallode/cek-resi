@@ -1,22 +1,20 @@
-// Runs every specs/*/cases.e2e.json against a running gateway (BASE_URL)
-// with all upstream services up: `mise run dev`, then `npm run test:e2e`.
-import { existsSync, readdirSync } from "node:fs";
-import { join } from "node:path";
+// End-to-end spec cases (`level: e2e`), run against a live gateway with every
+// upstream it needs running: `mise run dev`, then `npm run test:e2e`.
 import { test } from "node:test";
-import { loadJSON, repoRoot, runCase } from "../src/spectest.ts";
+import { loadJSON, runCases } from "../src/spectest.ts";
 
-const baseUrl = process.env.BASE_URL ?? "http://localhost:8080";
+const BASE_URL = process.env.BASE_URL ?? "http://localhost:8080";
 
-const files = readdirSync(join(repoRoot(), "specs"))
-  .sort()
-  .map((dir) => `specs/${dir}/cases.e2e.json`)
-  .filter((rel) => existsSync(join(repoRoot(), rel)));
+// e2e spec files whose services are implemented. Add an entry per spec.
+const SPEC_FILES = [
+  "specs/002-courier-detection/cases.e2e.json",
+  "specs/003-bulk-tracking/cases.e2e.json",
+];
 
-for (const rel of files) {
+for (const rel of SPEC_FILES) {
   const file = loadJSON(rel);
   test(file.spec, async (t) => {
-    for (const c of file.cases) {
-      await t.test(c.name, (t) => runCase(t, c, baseUrl));
-    }
+    // Every case in an e2e file goes through the gateway.
+    await runCases(t, file, file.target, BASE_URL);
   });
 }

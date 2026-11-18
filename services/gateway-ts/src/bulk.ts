@@ -1,9 +1,12 @@
 // POST /api/track/bulk (spec 003).
 import { createLimiter } from "./limiter.ts";
-import { type Failure, resolveTrack, type TrackEvent, type Upstreams } from "./resolve.ts";
+import { type Failure, type Resolved, resolveTrack, type Upstreams } from "./resolve.ts";
+import { errorMessage } from "./upstream.ts";
 
 export const MAX_ITEMS = 10;
 export const MAX_CONCURRENCY = 5;
+
+export type TrackEvent = { time: string; location: string; description: string };
 
 export type BulkItem = { awb: string; courier: string };
 
@@ -24,7 +27,7 @@ const MESSAGES: Record<Failure, string> = {
   unsupported_courier: "kurir belum didukung",
   invalid: "permintaan tidak valid",
   no_candidate: "kurir tidak terdeteksi, pilih kurir secara manual",
-  awb_too_long: "awb terlalu panjang",
+  detect_rejected: "permintaan tidak valid", // replaced by detect-rust's own message when it has one
   tracking_unavailable: "layanan sedang tidak tersedia",
   detect_unavailable: "layanan sedang tidak tersedia",
 };
@@ -82,15 +85,19 @@ export function trackBulk(up: Upstreams, items: BulkItem[]): Promise<BulkResult[
 
 async function trackItem(up: Upstreams, item: BulkItem): Promise<BulkResult> {
   const r = await resolveTrack(up, item.courier, item.awb);
-  if (!r.ok) {
-    return {
-      awb: item.awb,
-      courier: item.courier || null,
-      detected: false,
-      ok: false,
-      error: MESSAGES[r.failure],
-    };
+  const fail = (failure: Failure, upstream?: Extract<Resolved, { ok: false }>["upstream"]) => ({
+    awb: item.awb,
+    courier: item.courier || null,
+    detected: false,
+    ok: false,
+    error: (upstream && errorMessage(upstream.body)) || MESSAGES[failure],
+  });
+  if (!r.ok) return fail(r.failure, r.upstream);
+  if (!isTrackBody(r.track)) {
+    console.error("tracking: unexpected response body");
+    return fail("tracking_unavailable");
   }
+
   const result: BulkResult = {
     awb: item.awb,
     courier: r.courier,
@@ -102,6 +109,10 @@ async function trackItem(up: Upstreams, item: BulkItem): Promise<BulkResult> {
     result.last_event = r.track.history[0];
   }
   return result;
+}
+
+function isTrackBody(body: unknown): body is { status: string; history: TrackEvent[] } {
+  return isObject(body) && typeof body.status === "string" && Array.isArray(body.history);
 }
 
 function isObject(v: unknown): v is Record<string, unknown> {

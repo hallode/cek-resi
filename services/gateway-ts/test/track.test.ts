@@ -15,7 +15,7 @@ before(async () => {
   fake = await startFakeUpstream();
   gateway = createApp({
     webDir: join(repoRoot(), "web"),
-    upstreams: { tracking: fake.url, detect: fake.url },
+    upstreams: { tracking: fake.url, detect: fake.url, ongkir: "http://127.0.0.1:1" },
     upstreamTimeoutMs: 100,
   });
   await new Promise<void>((resolve) => gateway.listen(0, "127.0.0.1", resolve));
@@ -142,7 +142,10 @@ describe("GET /api/track", () => {
   test("without courier detects and adds detected: true", async () => {
     fake.handler = (path, q) =>
       path === "/api/detect"
-        ? { status: 200, body: { candidates: [{ code: "jnt" }] } }
+        ? {
+            status: 200,
+            body: { awb: (q.get("awb") ?? "").toUpperCase(), candidates: [{ code: "jnt" }] },
+          }
         : track("jnt", q.get("awb") ?? "");
     const res = await fetch(`${baseURL}/api/track?awb=jp1`);
     assert.equal(res.status, 200);

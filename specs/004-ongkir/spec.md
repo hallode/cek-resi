@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Implemented |
 | Service pemilik | `ongkir-py` (Python) |
 | Service lain yang tersentuh | `gateway-ts` (proxy prefix `/api/ongkir`), `web/` |
 | Bergantung pada | 000 |
@@ -92,6 +92,9 @@ Selain cek resi, user ingin membandingkan ongkir antar kurir sebelum mengirim (s
 - **R3** — `price = tarif_per_kg[kurir][layanan][zona] * billable_weight_kg`.
 - **R4** — `options` diurutkan: `price` naik, lalu `courier` alfabetis, lalu `service` alfabetis.
 - **R5** — Semua layanan di tabel tarif selalu tersedia untuk semua zona.
+- **R6** — Parameter yang tidak dikirim **atau berisi string kosong** dianggap tidak diisi (berlaku juga untuk `length`/`width`/`height`).
+- **R7** — `weight`, `length`, `width`, `height` diparse **ketat**: nilai mentah (tanpa trim) harus cocok `^[0-9]+$`, lalu dicek rentangnya. Jadi `1_000`, `+5`, `-5`, `1.5`, ` 5`, dan `abc` semuanya tidak valid. (Kode kota tetap di-trim, lihat R1.)
+- **R8** — Urutan validasi; error pertama yang kena dikembalikan: (1) `origin`/`destination`/`weight` tidak diisi → (2) kota asal tidak dikenal → (3) kota tujuan tidak dikenal → (4) `weight` tidak valid → (5) dimensi terisi sebagian → (6) dimensi tidak valid.
 
 ## UI
 Mengikuti aturan frontend satu halaman di [000](../000-architecture/spec.md#frontend-satu-halaman-satu-tab-per-fitur) (F1–F7).
@@ -100,12 +103,12 @@ Mengikuti aturan frontend satu halaman di [000](../000-architecture/spec.md#fron
 - Hasil berupa tabel: Kurir | Layanan | Estimasi | Harga (format `Rp 22.000`), baris termurah diberi label "Termurah".
 
 ## Kriteria penerimaan
-- [ ] `cases.json` lulus via `pytest` (memakai `TestClient` FastAPI, membaca file spec).
-- [ ] Unit test `billable_weight_kg` untuk batas: 1 g, 1000 g, 1001 g, 50000 g, volumetrik > aktual.
-- [ ] Gateway mem-proxy `/api/ongkir*` (cases bisa dijalankan juga via gateway).
+- [x] `cases.json` lulus via `pytest` (memakai `TestClient` FastAPI, membaca file spec).
+- [x] Unit test `billable_weight_kg` untuk batas: 1 g, 1000 g, 1001 g, 50000 g, volumetrik > aktual.
+- [x] Gateway mem-proxy `/api/ongkir*` (diuji dengan upstream tiruan: path, query, status, body tidak berubah; 502 bila service mati). Menjalankan `cases.json` lewat gateway dengan service hidup dilakukan manual (`mise run dev`).
 
 ## Tasks
-- [ ] ongkir-py: `app/data.py` (kota, tarif), `app/pricing.py` (R2–R4, fungsi murni), `app/main.py` (FastAPI, validasi, error sesuai tabel). Terima query param sebagai `str | None` lalu validasi manual — validasi otomatis FastAPI menghasilkan 422 dengan format berbeda dari K2.
-- [ ] ongkir-py: `tests/spectest.py` + `tests/test_spec.py`, `tests/test_pricing.py`.
-- [ ] gateway-ts: proxy prefix `/api/ongkir` → `ONGKIR_URL`.
-- [ ] web: `web/js/ongkir.js` + markup tab Cek Ongkir (butuh kerangka tab dari 000; sebelum itu belum bisa tampil di UI).
+- [x] ongkir-py: `app/data.py` (kota, tarif), `app/pricing.py` (R2–R4, fungsi murni), `app/main.py` (FastAPI, validasi, error sesuai tabel). Terima query param sebagai `str | None` lalu validasi manual — validasi otomatis FastAPI menghasilkan 422 dengan format berbeda dari K2.
+- [x] ongkir-py: `tests/spectest.py` + `tests/test_spec.py`, `tests/test_pricing.py`.
+- [x] gateway-ts: proxy prefix `/api/ongkir` → `ONGKIR_URL`.
+- [x] web: `web/js/ongkir.js` + markup tab Cek Ongkir (kerangka tab dari 000 sudah ada).

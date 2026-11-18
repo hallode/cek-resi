@@ -10,10 +10,10 @@ Aplikasi web cek resi paket multi-kurir (referensi UI: https://cekresi.com/top/)
 
 | Service | Bahasa | Port | Tugas | Status |
 |---|---|---|---|---|
-| [`gateway-ts`](services/gateway-ts/AGENTS.md) | TypeScript (Node 24) | 8080 | serve `web/`, proxy `/api/*` ke service lain | tracking di-proxy; bulk + track tanpa kurir (003) ada, termasuk tab Banyak Resi |
+| [`gateway-ts`](services/gateway-ts/AGENTS.md) | TypeScript (Node 24) | 8080 | serve `web/`, proxy `/api/*` ke service lain | tracking, ongkir & deteksi (002) jalan; bulk (003) termasuk tab Banyak Resi |
 | [`tracking-go`](services/tracking-go/AGENTS.md) | Go | 8081 | data resi & kurir (SQLite dummy) | jalan (spec 001 belum penuh) |
-| [`detect-rust`](services/detect-rust/AGENTS.md) | Rust (axum) | 8082 | deteksi kurir dari nomor resi | skeleton `/health` (spec 002) |
-| [`ongkir-py`](services/ongkir-py/AGENTS.md) | Python (FastAPI) | 8083 | kalkulasi ongkir | skeleton `/health` (spec 004) |
+| [`detect-rust`](services/detect-rust/AGENTS.md) | Rust (axum) | 8082 | deteksi kurir dari nomor resi | jalan (spec 002) |
+| [`ongkir-py`](services/ongkir-py/AGENTS.md) | Python (FastAPI) | 8083 | kalkulasi ongkir | jalan (spec 004 terimplementasi) |
 
 `web/` = frontend statis (HTML/CSS/vanilla JS, tanpa build step), diserve gateway. Browser hanya bicara ke gateway.
 

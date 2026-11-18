@@ -6,7 +6,7 @@ import { serveStatic } from "./static.ts";
 import { handleAutoTrack, handleBulk, isAutoTrack } from "./track.ts";
 import { DEFAULT_TIMEOUT_MS, httpCall } from "./upstream.ts";
 
-export type Upstream = "tracking" | "detect";
+export type Upstream = "tracking" | "detect" | "ongkir";
 
 export type Config = {
   webDir: string;
@@ -21,6 +21,9 @@ export type Config = {
 const ROUTES: ReadonlyArray<{ path: string; upstream: Upstream }> = [
   { path: "/api/couriers", upstream: "tracking" },
   { path: "/api/track", upstream: "tracking" },
+  { path: "/api/detect", upstream: "detect" },
+  { path: "/api/ongkir", upstream: "ongkir" },
+  { path: "/api/ongkir/cities", upstream: "ongkir" },
 ];
 
 export function createApp(cfg: Config): Server {

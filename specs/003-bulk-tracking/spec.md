@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft (gateway-ts & UI sudah ada; e2e menunggu 002) |
+| Status | Implemented (kecuali CI; UI belum dicek di browser sungguhan) |
 | Service pemilik | `gateway-ts` (TypeScript) |
 | Service lain yang tersentuh | `tracking-go`, `detect-rust` (dipanggil), `web/` |
 | Bergantung pada | 001, 002 |
@@ -85,20 +85,18 @@ Error level request, dicek **berurutan**; yang pertama cocok menang:
   | Respon upstream | `error` |
   |---|---|
   | tracking 404 | `resi tidak ditemukan` |
-  | tracking 400 `kurir tidak dikenal` | `kurir tidak dikenal` |
-  | tracking 501 | `kurir belum didukung` |
-  | tracking 4xx lain | `permintaan tidak valid` |
+  | tracking 400 `kurir tidak dikenal` (kurir dari user) | `kurir tidak dikenal` |
+  | tracking 501 (kurir dari user) | `kurir belum didukung` |
+  | tracking 4xx lain (kurir dari user) | `permintaan tidak valid` |
   | deteksi 200 dengan `candidates: []` | `kurir tidak terdeteksi, pilih kurir secara manual` |
-  | deteksi 400 `awb terlalu panjang` | `awb terlalu panjang` |
-  | deteksi 4xx lain | `permintaan tidak valid` |
+  | deteksi 4xx | pesan `error` dari deteksi apa adanya (mis. `awb terlalu panjang`); `permintaan tidak valid` jika kosong |
   | timeout / koneksi gagal / 5xx selain 501 / body bukan JSON | `layanan sedang tidak tersedia` |
 
-- **R5a** — Item tanpa `courier` mencoba kandidat berurutan; kandidat pertama yang `200` menang. Jika tidak ada yang `200`, error dipilih dengan prioritas:
-  1. ada kandidat yang `layanan sedang tidak tersedia` → itu (resi mungkin ada di layanan yang sedang down, jadi "tidak ditemukan" bisa menyesatkan);
-  2. semua kandidat 404 → `resi tidak ditemukan`;
-  3. selain itu → pesan kandidat pertama yang bukan 404.
+- **R5a** — Item tanpa `courier` mencoba kandidat berurutan (002) memakai `awb` hasil normalisasi deteksi; kandidat pertama yang `200` menang. Untuk kandidat hasil deteksi, tracking 400/404/501 berarti "bukan kurir ini" (miss). Jika tidak ada yang `200`:
+  1. ada kandidat yang tidak tersedia (timeout/koneksi gagal/5xx) → `layanan sedang tidak tersedia` (resi mungkin ada di layanan yang sedang down, jadi "tidak ditemukan" bisa menyesatkan); kandidat sisanya tetap dicoba;
+  2. selain itu → `resi tidak ditemukan`.
 - **R6** — Saat item gagal, `courier` diisi kode yang dikirim user (jika ada), selain itu `null`.
-- **R7** — Logika "deteksi lalu coba kandidat" dipakai bersama oleh `GET /api/track` (002) dan bulk; implementasikan sekali di gateway (`src/resolve.ts`). Untuk `GET /api/track` tanpa `courier`, hasil resolve dipetakan ke status HTTP: tidak ada kandidat → 400, semua 404 → 404, `awb terlalu panjang` → 400, `kurir tidak dikenal` → 400, `kurir belum didukung` → 501, deteksi down → 502 `layanan deteksi tidak tersedia`, tracking down → 502 `layanan tracking tidak tersedia` (A5).
+- **R7** — Logika "deteksi lalu coba kandidat" dipakai bersama oleh `GET /api/track` (002) dan bulk; implementasikan sekali di gateway (`src/resolve.ts`). Untuk `GET /api/track` dengan `courier` kosong/blank, hasil resolve dipetakan sesuai tabel 002: tidak ada kandidat → 400, semua miss → 404, respon 4xx deteksi diteruskan apa adanya (status + body), deteksi down → 502 `layanan deteksi tidak tersedia`, tracking down → 502 `layanan tracking tidak tersedia` (A5).
 
 ## UI & permalink
 Mengikuti aturan frontend satu halaman di [000](../000-architecture/spec.md#frontend-satu-halaman-satu-tab-per-fitur) (F1–F7).
@@ -116,7 +114,7 @@ Mengikuti aturan frontend satu halaman di [000](../000-architecture/spec.md#fron
 
 ## Kriteria penerimaan
 - [x] `cases.json` lulus via `node --test` tanpa upstream (validasi request saja).
-- [ ] `cases.e2e.json` lulus dengan semua service hidup. (Sudah lulus dengan tracking Go asli + detect tiruan; menunggu `detect-rust` dari 002.)
+- [x] `cases.e2e.json` lulus dengan semua service hidup (tracking-go + detect-rust asli).
 - [x] Unit test `resolve.ts` dengan upstream tiruan: timeout → `layanan sedang tidak tersedia`; batas konkurensi 5 dipatuhi.
 
 ## Tasks
