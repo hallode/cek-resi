@@ -6,7 +6,7 @@ argument-hint: "[diff | HEAD | PR <nomor|url> | path]"
 
 # Review kode
 
-Review ini **read-only**: tidak mengedit file, tidak commit/push, tidak memposting komentar PR, tidak merge. Posting komentar atau merge hanya bila user memintanya secara eksplisit, dan itu dilakukan terpisah setelah laporan (untuk PR GitHub, alurnya ada di skill `review-pr`). Untuk PR, `file:baris` merujuk nomor baris di versi head PR.
+Review ini **read-only**: tidak mengedit file, tidak commit/push, tidak memposting komentar PR, tidak merge. Posting komentar hanya bila user memintanya (review/cek PR), merge hanya bila user menyebut kata "merge"; keduanya dilakukan terpisah setelah laporan (untuk PR GitHub, alurnya ada di skill `review-pr`). Untuk PR, `file:baris` merujuk nomor baris di versi head PR.
 
 Struktur review diadaptasi dari `/ponytail-review` ([ponytail](https://github.com/dietrichgebert/ponytail), MIT), disesuaikan dengan repo ini.
 
