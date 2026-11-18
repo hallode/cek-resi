@@ -52,7 +52,8 @@ dev_pid=$!
 trap 'kill -- -"$dev_pid" 2>/dev/null; wait "$dev_pid" 2>/dev/null' EXIT
 
 ready=0
-for _ in $(seq 1 180); do
+deadline=$((SECONDS + 180))
+while ((SECONDS < deadline)); do
   if curl -sf -m 2 localhost:8080/health >/dev/null && curl -sf -m 2 localhost:8081/health >/dev/null &&
     curl -sf -m 2 localhost:8082/health >/dev/null && curl -sf -m 2 localhost:8083/health >/dev/null; then
     ready=1
