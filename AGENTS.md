@@ -6,7 +6,7 @@ Aplikasi cek resi multi-kurir (data **dummy**; jangan memanggil API kurir asli a
 1. **Mulai dari Peta konteks di bawah**, baca hanya baris yang cocok dengan tugas. Jangan me-list atau membaca seluruh repo/folder.
 2. **Cari dulu, baru baca.** Grep nama fungsi/route/kasus yang spesifik; baca file yang ketemu. File panjang (>300 baris) dibaca per bagian.
 3. **Lintas service lewat kontrak, bukan kode.** Untuk service lain cukup spec-nya (`specs/`), jangan membaca implementasinya.
-4. **Jangan baca:** lockfile (`uv.lock`, `package-lock.json`, `Cargo.lock`, `go.sum`), `*.db`, folder build (`node_modules/`, `target/`, `.venv/`), arsip `plans/`, dan output test penuh (pakai `tail`/`grep`).
+4. **Jangan baca:** lockfile (`uv.lock`, `package-lock.json`, `Cargo.lock`, `go.sum`), `*.db`, folder build (`node_modules/`, `target/`, `.venv/`), dan output test penuh (pakai `tail`/`grep`).
 5. Aturan detail tiap folder ada di `AGENTS.md` folder itu dan dimuat saat folder itu disentuh, jadi tidak perlu dibuka di awal.
 6. Berhenti membaca begitu cukup untuk bertindak. Subagent diberi path spesifik, bukan "jelajahi repo".
 
@@ -54,7 +54,8 @@ mise run agents:sync             # terapkan .claude/agents.toml ke definisi agen
 Detail di `.claude/skills/` (diadaptasi dari [ponytail](https://github.com/dietrichgebert/ponytail), MIT).
 - **Perubahan terkecil yang lengkap** (skill `ponytail`): reuse repo → stdlib → dependency terpasang → baru kode baru. Pemanggil, test, `cases.json`, dan status spec ikut diselesaikan.
 - **Jangan dipotong:** validasi batas kepercayaan, error `{"error": ...}`, keamanan (nomor resi tidak masuk log, `textContent` bukan `innerHTML`), aksesibilitas.
-- **Alur default tugas coding non-sepele** (skill `dev-flow`): subagent planner membuat rencana → user menyetujui → subagent executor mengerjakan → user ditanya mau review → subagent reviewer; subagent explorer untuk pertanyaan sempit. Model/effort tiap subagent dari `.claude/agents.toml` (jangan override saat memanggil). Review (skill `review-code`) read-only dengan temuan terverifikasi.
+- **Alur default tugas coding non-sepele** (skill `dev-flow`): subagent planner membuat rencana → user menyetujui → subagent executor mengerjakan → user ditanya mau review → subagent reviewer → user ditanya mau PR; hotfix (`mode=hotfix`) melewati planner; subagent explorer untuk pertanyaan sempit. Model/effort tiap subagent dari `.claude/agents.toml` (jangan override saat memanggil). Review (skill `review-code`) read-only dengan temuan terverifikasi.
+- **Selalu branch baru dari `master`** sebelum edit pertama, termasuk tugas sepele: `feat/` `hotfix/` `fix/` `refactor/` `chore/` `docs/` (detail di skill `dev-flow`, bagian Branch). Tidak commit langsung ke `master`; setelah commit, tanya user mau dibuatkan PR atau tidak.
 - Jangan melaporkan hasil yang tidak kamu lihat; tutup balasan dengan apa yang dilewati dan risikonya. Push, komentar/merge PR, dan `mise run scan` hanya atas izin jelas.
 
 ## Checklist service baru
