@@ -26,8 +26,8 @@ cek-resi/
 │   ├── tracking-go/           # Go — data resi & kurir (kode yang sudah ada dipindah ke sini)
 │   ├── detect-rust/           # Rust — deteksi kurir dari pola resi
 │   └── ongkir-py/             # Python — kalkulasi ongkir
-├── Makefile                   # dev (jalankan semua), test (semua service)
-└── .github/workflows/ci.yml   # satu job per service + satu job e2e
+├── mise.toml                  # toolchain ter-pin + task seragam (setup/dev/test/lint/fmt per service)
+└── .github/                   # (belum ada) CI per service
 ```
 
 ## Service
@@ -86,14 +86,15 @@ Menambah kurir = update tabel ini, lalu seed `tracking-go`, lalu pola di 002 dan
 - Data dummy deterministik; test tidak boleh bergantung pada jam sistem atau urutan acak.
 
 ## Kriteria penerimaan
-- [ ] Kode Go yang ada pindah ke `services/tracking-go/` dan `web/` ke root; perilaku API tidak berubah (cases 001 lulus).
-- [ ] Keempat service jalan dan `/health` sesuai A3 (cases 000 lulus, langsung ke masing-masing service).
-- [ ] `make dev` menjalankan semua service; `http://localhost:8080` menampilkan UI dan cek resi berfungsi via gateway.
+- [x] Kode Go yang ada pindah ke `services/tracking-go/` dan `web/` ke root; perilaku API tidak berubah (cases 001 lulus, kecuali field `source` yang bagian 001).
+- [x] Keempat service jalan dan `/health` sesuai A3 (cases 000 lulus, langsung ke masing-masing service).
+- [x] `mise run dev` menjalankan semua service; `http://localhost:8080` menampilkan UI dan cek resi berfungsi via gateway.
 - [ ] CI punya job per service + e2e, semuanya hijau.
 
 ## Tasks
-- [ ] `git mv` kode Go ke `services/tracking-go/`, hapus serve web dari Go, port default 8081, tambah `/health`.
-- [ ] Pindah `web/` (hapus `embed.go`), gateway serve statis + proxy `/api/couriers`, `/api/track`.
-- [ ] Skeleton `detect-rust` & `ongkir-py` dengan `/health`.
-- [ ] Helper `matchPartial` per bahasa + loader `cases.json`.
-- [ ] Root `Makefile`, `.github/workflows/ci.yml`, update `AGENTS.md` root + `AGENTS.md` per service.
+- [x] `git mv` kode Go ke `services/tracking-go/`, hapus serve web dari Go, port default 8081, tambah `/health`.
+- [x] Pindah `web/` (hapus `embed.go`), gateway serve statis + proxy `/api/couriers`, `/api/track`.
+- [x] Skeleton `detect-rust` & `ongkir-py` dengan `/health`.
+- [x] Helper `matchPartial` per bahasa + loader `cases.json` (divalidasi `specs/matcher-cases.json`).
+- [x] Root `mise.toml` + `AGENTS.md` root dan per service.
+- [ ] CI per service (`.github/workflows`) dan job e2e — belum dibuat.

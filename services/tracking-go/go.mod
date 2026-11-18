@@ -1,4 +1,4 @@
-module cek-resi
+module github.com/hallode/cek-resi/services/tracking-go
 
 go 1.26.0
 

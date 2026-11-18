@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strings"
 
-	"cek-resi/internal/store"
+	"github.com/hallode/cek-resi/services/tracking-go/internal/store"
 )
 
 type courierJSON struct {
@@ -41,8 +41,13 @@ type handler struct {
 // Register mounts the API routes on mux.
 func Register(mux *http.ServeMux, s *store.Store) {
 	h := &handler{store: s}
+	mux.HandleFunc("GET /health", health)
 	mux.HandleFunc("GET /api/couriers", h.listCouriers)
 	mux.HandleFunc("GET /api/track", h.track)
+}
+
+func health(w http.ResponseWriter, _ *http.Request) {
+	writeJSON(w, http.StatusOK, map[string]string{"status": "ok", "service": "tracking-go"})
 }
 
 func (h *handler) listCouriers(w http.ResponseWriter, r *http.Request) {

@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"cek-resi/internal/store"
+	"github.com/hallode/cek-resi/services/tracking-go/internal/store"
 )
 
 func newServer(t *testing.T) *http.ServeMux {

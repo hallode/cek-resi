@@ -6,7 +6,7 @@ Repo ini **spec-driven**: perilaku sistem didefinisikan dulu di `specs/`, baru d
 
 | ID | Judul | Service pemilik | Bahasa | Status | Bergantung pada |
 |---|---|---|---|---|---|
-| [000](000-architecture/spec.md) | Arsitektur monorepo polyglot | semua | — | Draft | — |
+| [000](000-architecture/spec.md) | Arsitektur monorepo polyglot | semua | — | Implemented (kecuali CI) | — |
 | [001](001-tracking-provider/spec.md) | Tracking + provider adapter | `tracking-go` | Go | Draft (API sudah ada) | 000 |
 | [002](002-courier-detection/spec.md) | Deteksi kurir otomatis | `detect-rust` | Rust | Draft | 000, 001 |
 | [003](003-bulk-tracking/spec.md) | Cek banyak resi + permalink | `gateway-ts` | TypeScript | Draft | 001, 002 |

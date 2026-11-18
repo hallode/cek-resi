@@ -1,0 +1,140 @@
+# Single entry point for the monorepo: pinned toolchains + uniform tasks.
+#   mise install        install every toolchain below
+#   mise run setup      install dependencies of every service
+#   mise run dev        start every service (gateway on :8080)
+#   mise run lint|test|fmt
+#   mise run <action>:<service>   e.g. mise run test:detect
+#
+# Every service MUST define setup/dev/test/lint/fmt tasks (see AGENTS.md#kontrak-service).
+
+[tools]
+go = "1.27.4"
+node = "24.22.3"
+rust = { version = "1.100.0", components = "clippy,rustfmt", profile = "minimal" }
+python = "3.12.16"
+uv = "0.13.8"
+
+[settings]
+jobs = 8 # >= number of services, so `mise run dev` can keep them all running
+
+[env]
+TRACKING_URL = "http://localhost:8081"
+DETECT_URL = "http://localhost:8082"
+ONGKIR_URL = "http://localhost:8083"
+UV_PYTHON_DOWNLOADS = "never" # use the python pinned above, not a uv-managed one
+
+# ---------------------------------------------------------------- aggregates
+
+[tasks.setup]
+description = "Install dependencies for every service"
+depends = ["setup:*"]
+
+[tasks.dev]
+description = "Run every service (gateway: http://localhost:8080)"
+depends = ["dev:*"]
+
+[tasks.test]
+description = "Test every service"
+depends = ["test:*"]
+
+[tasks.lint]
+description = "Lint every service"
+depends = ["lint:*"]
+
+[tasks.fmt]
+description = "Format every service"
+depends = ["fmt:*"]
+
+# ------------------------------------------------------- tracking-go (Go)
+
+[tasks."setup:tracking"]
+dir = "{{config_root}}/services/tracking-go"
+run = "go mod download"
+
+[tasks."dev:tracking"]
+dir = "{{config_root}}/services/tracking-go"
+env = { PORT = "8081" }
+run = "go run ."
+
+[tasks."test:tracking"]
+dir = "{{config_root}}/services/tracking-go"
+run = "go test ./..."
+
+[tasks."lint:tracking"]
+dir = "{{config_root}}/services/tracking-go"
+run = [
+  'test -z "$(gofmt -l .)" || { gofmt -l .; echo "run: mise run fmt:tracking"; exit 1; }',
+  "go vet ./...",
+]
+
+[tasks."fmt:tracking"]
+dir = "{{config_root}}/services/tracking-go"
+run = "gofmt -w ."
+
+# ------------------------------------------------- gateway-ts (TypeScript)
+
+[tasks."setup:gateway"]
+dir = "{{config_root}}/services/gateway-ts"
+run = "npm ci"
+
+[tasks."dev:gateway"]
+dir = "{{config_root}}/services/gateway-ts"
+env = { PORT = "8080" }
+run = "node src/main.ts"
+
+[tasks."test:gateway"]
+dir = "{{config_root}}/services/gateway-ts"
+run = "npm test"
+
+[tasks."lint:gateway"]
+dir = "{{config_root}}/services/gateway-ts"
+run = "npm run lint"
+
+[tasks."fmt:gateway"]
+dir = "{{config_root}}/services/gateway-ts"
+run = "npm run fmt"
+
+# ------------------------------------------------------ detect-rust (Rust)
+
+[tasks."setup:detect"]
+dir = "{{config_root}}/services/detect-rust"
+run = "cargo fetch"
+
+[tasks."dev:detect"]
+dir = "{{config_root}}/services/detect-rust"
+env = { PORT = "8082" }
+run = "cargo run"
+
+[tasks."test:detect"]
+dir = "{{config_root}}/services/detect-rust"
+run = "cargo test"
+
+[tasks."lint:detect"]
+dir = "{{config_root}}/services/detect-rust"
+run = ["cargo fmt --check", "cargo clippy --all-targets -- -D warnings"]
+
+[tasks."fmt:detect"]
+dir = "{{config_root}}/services/detect-rust"
+run = "cargo fmt"
+
+# ------------------------------------------------------ ongkir-py (Python)
+
+[tasks."setup:ongkir"]
+dir = "{{config_root}}/services/ongkir-py"
+run = "uv sync --locked"
+
+[tasks."dev:ongkir"]
+dir = "{{config_root}}/services/ongkir-py"
+run = "uv run uvicorn app.main:app --port 8083"
+
+[tasks."test:ongkir"]
+dir = "{{config_root}}/services/ongkir-py"
+run = "uv run pytest"
+
+[tasks."lint:ongkir"]
+dir = "{{config_root}}/services/ongkir-py"
+run = ["uv run ruff check .", "uv run ruff format --check ."]
+
+[tasks."fmt:ongkir"]
+dir = "{{config_root}}/services/ongkir-py"
+run = ["uv run ruff check --fix .", "uv run ruff format ."]

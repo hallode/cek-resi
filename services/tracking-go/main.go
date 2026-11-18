@@ -6,14 +6,13 @@ import (
 	"net/http"
 	"os"
 
-	"cek-resi/internal/api"
-	"cek-resi/internal/store"
-	"cek-resi/web"
+	"github.com/hallode/cek-resi/services/tracking-go/internal/api"
+	"github.com/hallode/cek-resi/services/tracking-go/internal/store"
 )
 
 func main() {
 	dbPath := getenv("DB_PATH", "cekresi.db")
-	addr := ":" + getenv("PORT", "8080")
+	addr := ":" + getenv("PORT", "8081")
 
 	s, err := store.Open(context.Background(), dbPath)
 	if err != nil {
@@ -23,9 +22,8 @@ func main() {
 
 	mux := http.NewServeMux()
 	api.Register(mux, s)
-	mux.Handle("GET /", http.FileServerFS(web.FS))
 
-	log.Printf("cek-resi listening on http://localhost%s (db: %s)", addr, dbPath)
+	log.Printf("tracking-go listening on %s (db: %s)", addr, dbPath)
 	if err := http.ListenAndServe(addr, mux); err != nil {
 		log.Fatal(err)
 	}

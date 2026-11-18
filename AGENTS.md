@@ -1,115 +1,58 @@
 # AGENTS.md
 
-Panduan untuk coding agent (dan manusia) yang bekerja di repo ini.
+Panduan untuk coding agent (dan manusia) di monorepo ini.
 
 ## Ringkasan
 
-Aplikasi web cek resi paket multi-kurir (referensi UI: https://cekresi.com/top/). User memilih kurir, memasukkan nomor resi, lalu melihat status dan riwayat perjalanan paket.
+Aplikasi web cek resi paket multi-kurir (referensi UI: https://cekresi.com/top/), dibangun sebagai monorepo polyglot: **satu service per bahasa**. **Semua data dummy** — jangan memanggil API kurir asli, scraping, atau layanan eksternal kecuali diminta eksplisit.
 
-**Semua data adalah dummy** dari SQLite lokal. Jangan menambahkan pemanggilan ke API kurir asli, scraping, atau layanan eksternal lain kecuali diminta secara eksplisit.
+## Service
+
+| Service | Bahasa | Port | Tugas | Status |
+|---|---|---|---|---|
+| [`gateway-ts`](services/gateway-ts/AGENTS.md) | TypeScript (Node 24) | 8080 | serve `web/`, proxy `/api/*` ke service lain | tracking di-proxy; sisanya spec 002/003 |
+| [`tracking-go`](services/tracking-go/AGENTS.md) | Go | 8081 | data resi & kurir (SQLite dummy) | jalan (spec 001 belum penuh) |
+| [`detect-rust`](services/detect-rust/AGENTS.md) | Rust (axum) | 8082 | deteksi kurir dari nomor resi | skeleton `/health` (spec 002) |
+| [`ongkir-py`](services/ongkir-py/AGENTS.md) | Python (FastAPI) | 8083 | kalkulasi ongkir | skeleton `/health` (spec 004) |
+
+`web/` = frontend statis (HTML/CSS/vanilla JS, tanpa build step), diserve gateway. Browser hanya bicara ke gateway.
 
 ## Spec-driven
 
-Perilaku sistem didefinisikan di [`specs/`](specs/README.md) sebelum diimplementasikan. Arah pengembangan: monorepo dengan satu service per bahasa (Go, Rust, TypeScript, Python) — lihat [000](specs/000-architecture/spec.md).
+Perilaku didefinisikan di [`specs/`](specs/README.md) sebelum diimplementasikan.
 
 - **Jangan menulis fitur baru tanpa spec.** Ubah `spec.md` + `cases.json` dulu, baru kode.
-- Test wajib membaca `cases.json` dari spec terkait (jangan menyalin kasusnya ke kode test).
-- Kalau kode dan spec berbeda, anggap bug. Tanyakan ke user mana yang benar kalau tidak jelas.
-- Setelah selesai, update kolom Status di [specs/README.md](specs/README.md) dan header spec.
+- Test wajib membaca `cases.json` (lewat harness `spectest` tiap bahasa), jangan menyalin kasusnya ke kode test.
+- Kode berbeda dari spec = bug. Kalau tidak jelas mana yang benar, tanya user.
+- Setelah selesai, update Status di [specs/README.md](specs/README.md) dan header spec.
 
-Bagian di bawah ini menjelaskan kondisi repo **saat ini** (satu aplikasi Go). Saat spec 000 diimplementasikan, isinya dipindah ke `services/tracking-go/AGENTS.md`.
-
-## Stack
-
-- **Backend**: Go (stdlib `net/http`, pattern routing `GET /path`), satu dependency: `modernc.org/sqlite` (pure Go, tanpa cgo).
-- **Frontend**: HTML + CSS + vanilla JS, di-embed ke binary via `embed`. Tanpa framework, bundler, atau build step.
-- **DB**: SQLite. Schema + seed dijalankan otomatis setiap start (idempotent).
-
-Jangan menambah dependency (Go maupun JS) tanpa alasan kuat. Prefer stdlib.
-
-## Struktur
-
-```
-main.go                  wiring saja: env, store.Open, routing, ListenAndServe
-internal/store/          SEMUA akses SQL. Tidak tahu soal HTTP/JSON.
-  store.go               Open, ListCouriers, GetCourier, FindShipment
-  schema.sql             DDL (CREATE TABLE IF NOT EXISTS)
-  seed.sql               data dummy (INSERT OR IGNORE)
-internal/api/            HTTP handler + bentuk JSON. Tidak menulis SQL.
-  api.go                 Register(mux, store), handler, helper writeJSON/writeError
-  api_test.go            test table-driven via httptest + store ":memory:"
-web/                     frontend statis, di-embed (web/embed.go)
-  index.html, app.js, style.css
-```
-
-Aturan layer: `api` → `store` → SQLite. `web/app.js` hanya fetch + render; validasi dan logic bisnis ada di Go.
-
-## Commands
+## Perintah (semua lewat [mise](https://mise.jdx.dev))
 
 ```sh
-make run        # go run . → http://localhost:8080
-make test       # go test ./...
-make vet        # go vet ./...
-make fmt        # gofmt -w .
-make reset-db   # hapus cekresi.db (seed ulang saat run)
+mise install                 # toolchain ter-pin: Go, Node, Rust, Python, uv
+mise run setup               # install dependency semua service
+mise run dev                 # jalankan semua → http://localhost:8080
+mise run test | lint | fmt   # semua service
+mise run test:detect         # satu service: <aksi>:<tracking|gateway|detect|ongkir>
 ```
 
-Env: `PORT` (default `8080`), `DB_PATH` (default `cekresi.db`, di-gitignore).
+Versi toolchain ada di [`mise.toml`](mise.toml) — ubah di sana, bukan di tiap service.
 
-## Kontrak API
+## Aturan lintas-service
 
-| Method | Path | Respon |
-|---|---|---|
-| GET | `/api/couriers` | `200 [{code, name}]` |
-| GET | `/api/track?courier=<code>&awb=<resi>` | `200` objek tracking, `400` param kosong / kurir tidak dikenal, `404` resi tidak ada |
-| GET | `/` | file statis dari `web/` |
+- Service hanya bicara lewat HTTP JSON sesuai spec. Tidak ada import kode lintas service, tidak ada DB bersama.
+- Gateway meneruskan path publik **apa adanya** ke service pemilik (`ROUTES` di `services/gateway-ts/src/app.ts`).
+- Konvensi HTTP/JSON, kurir kanonik, dan aturan A1–A6 ada di [spec 000](specs/000-architecture/spec.md).
+- Dependency minimal; prefer stdlib. Jangan tambah dependency tanpa alasan kuat.
 
-Input dinormalisasi di server: `courier` → trim + lowercase, `awb` → trim + uppercase.
+## Kontrak service (checklist service baru)
 
-Respon `200` `/api/track`:
-
-```json
-{
-  "awb": "004000123456",
-  "courier": { "code": "sicepat", "name": "SiCepat Ekspres" },
-  "sender": "Budi Santoso", "receiver": "Siti Aminah",
-  "origin": "Jakarta Barat", "destination": "Bandung",
-  "service": "REG",
-  "status": "DELIVERED",
-  "history": [
-    { "time": "2026-11-11T13:47:00+07:00", "location": "Bandung", "description": "..." }
-  ]
-}
-```
-
-- `status` ∈ `PICKED_UP | IN_TRANSIT | OUT_FOR_DELIVERY | DELIVERED | RETURNED`. Label bahasa Indonesia ada di `STATUS_LABEL` (`web/app.js`), warna badge di `.status-*` (`web/style.css`).
-- `history` selalu array (bisa kosong), urut **terbaru dulu**.
-- `time` ISO 8601 dengan offset (+07:00).
-- Semua error: `{"error": "<pesan bahasa Indonesia>"}`. Error 500 di-log, pesan ke client generik.
-
-Kalau kontrak berubah, update bagian ini dan README.
-
-## Resep
-
-**Tambah kurir** — tambah baris di `couriers` pada `internal/store/seed.sql`. Urutan tombol di UI = urutan insert. Update angka di `TestListCouriers`.
-
-**Tambah resi dummy** — tambah baris di `shipments` + beberapa `tracking_events` di `seed.sql`. Tambahkan juga ke tabel resi dummy di README. Jalankan `make reset-db` bila DB lokal sudah ada dan baris diubah (bukan ditambah), karena seed memakai `INSERT OR IGNORE`.
-
-**Tambah field di respon** — urutannya: `schema.sql` + `seed.sql` → struct & query di `store.go` → `*JSON` struct + mapping di `api.go` → render di `app.js`/`index.html` → test di `api_test.go` → kontrak di file ini.
-
-**Tambah status baru** — tambah di komentar `schema.sql`, `STATUS_LABEL` (`app.js`), kelas `.status-*` (`style.css`), dan daftar status di file ini.
-
-## Konvensi
-
-- Go: `gofmt`, error dibungkus `fmt.Errorf("konteks: %w", err)`, sentinel `store.ErrNotFound` dicek dengan `errors.Is`.
-- Struct di `store` tanpa tag JSON; bentuk JSON hanya di `api`.
-- Query selalu pakai placeholder `?`, jangan string concat.
-- Test: table-driven, pakai `store.Open(ctx, ":memory:")` — jangan bergantung pada file `cekresi.db`.
-- JS: render dengan `textContent`/`createElement`, jangan `innerHTML` dengan data dari API.
-- Teks yang tampil ke user dalam bahasa Indonesia.
+1. `services/<nama>/AGENTS.md` sendiri.
+2. `GET /health` → `{"status":"ok","service":"<nama>"}`; port dari env `PORT`.
+3. Task `setup|dev|test|lint|fmt:<alias>` di `mise.toml` + masuk daftar service di atas.
+4. Harness `matchPartial` + loader `cases.json` (contoh: `internal/spectest`, `src/spectest.ts`, `tests/spectest/`, `tests/spectest.py`), divalidasi oleh [`specs/matcher-cases.json`](specs/matcher-cases.json).
+5. Spec dimuat lewat daftar eksplisit `SPEC_FILES` di test service; tambahkan entri saat spec-nya diimplementasikan.
 
 ## Definition of done
 
-1. `make fmt && make vet && make test` hijau.
-2. `make run`, cek manual di browser: pilih kurir, cek resi dummy, resi tidak ada (pesan error), riwayat pencarian.
-3. Kontrak API / resep di file ini masih akurat.
+`mise run lint` dan `mise run test` hijau; kontrak/spec masih akurat; kalau UI berubah, cek manual lewat `mise run dev`.

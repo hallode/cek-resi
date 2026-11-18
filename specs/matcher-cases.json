@@ -1,0 +1,20 @@
+{
+  "description": "Test vectors for the matchPartial helper every language implements. See README.md#format-casesjson.",
+  "cases": [
+    { "name": "extra keys ignored", "expected": { "a": 1 }, "actual": { "a": 1, "b": 2 }, "match": true },
+    { "name": "missing key", "expected": { "a": 1 }, "actual": { "b": 1 }, "match": false },
+    { "name": "scalar mismatch", "expected": { "a": "x" }, "actual": { "a": "y" }, "match": false },
+    { "name": "number vs string", "expected": { "a": 1 }, "actual": { "a": "1" }, "match": false },
+    { "name": "bool vs number", "expected": { "a": true }, "actual": { "a": 1 }, "match": false },
+    { "name": "null matches null", "expected": { "a": null }, "actual": { "a": null }, "match": true },
+    { "name": "null vs missing", "expected": { "a": null }, "actual": {}, "match": false },
+    { "name": "nested partial", "expected": { "a": { "b": 1 } }, "actual": { "a": { "b": 1, "c": 2 } }, "match": true },
+    { "name": "array order matters", "expected": [{ "c": "a" }, { "c": "b" }], "actual": [{ "c": "b" }, { "c": "a" }], "match": false },
+    { "name": "array length must match", "expected": [1], "actual": [1, 2], "match": false },
+    { "name": "array elements partial", "expected": [{ "c": "a" }], "actual": [{ "c": "a", "n": 1 }], "match": true },
+    { "name": "empty array", "expected": [], "actual": [], "match": true },
+    { "name": "$length ok", "expected": { "h": { "$length": 2 } }, "actual": { "h": [1, 2] }, "match": true },
+    { "name": "$length mismatch", "expected": { "h": { "$length": 2 } }, "actual": { "h": [1] }, "match": false },
+    { "name": "$length on non-array", "expected": { "h": { "$length": 0 } }, "actual": { "h": {} }, "match": false }
+  ]
+}

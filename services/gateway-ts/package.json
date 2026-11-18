@@ -1,0 +1,20 @@
+{
+  "name": "gateway-ts",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node src/main.ts",
+    "test": "node --test \"test/**/*.test.ts\"",
+    "test:e2e": "node --test \"e2e/**/*.test.ts\"",
+    "lint": "biome check . && tsc",
+    "fmt": "biome check --write ."
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.8",
+    "@types/node": "^24.19.2",
+    "typescript": "^7.0.2"
+  }
+}

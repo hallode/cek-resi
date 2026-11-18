@@ -1,0 +1,17 @@
+{
+  // Type-check only. Node 24 runs the .ts sources directly (type stripping),
+  // so only erasable TypeScript syntax is allowed.
+  "compilerOptions": {
+    "target": "es2024",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "strict": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+    "types": ["node"],
+    "skipLibCheck": true
+  },
+  "include": ["src", "test", "e2e"]
+}
