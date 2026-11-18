@@ -74,7 +74,6 @@ export async function runCases(
   }
 }
 
-/** Sends one case's request to baseUrl and asserts status + partial body. */
 /** Sends a case's request (raw_body wins over body) and returns status + raw text. */
 export async function sendCase(
   c: SpecCase,
@@ -93,6 +92,7 @@ export async function sendCase(
   return { status: res.status, text: await res.text() };
 }
 
+/** Sends one case's request to baseUrl and asserts status + partial body. */
 export async function runCase(t: TestContext, c: SpecCase, baseUrl: string): Promise<void> {
   const { status, text } = await sendCase(c, baseUrl);
   t.assert.equal(status, c.expect.status, `status; body = ${text}`);
