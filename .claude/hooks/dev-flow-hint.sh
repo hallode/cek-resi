@@ -20,7 +20,7 @@ if printf '%s' "$lower" | grep -Eq "$review_pr"; then
 elif printf '%s' "$lower" | grep -Eq "$hot"; then
   hint='Prompt ini menyebut hotfix: bila memang meminta perubahan kode, invoke skill dev-flow dengan mode=hotfix (tanpa planner, branch hotfix/<nama>).'
 elif printf '%s' "$lower" | grep -Eq "$change"; then
-  hint='Bila prompt ini meminta perubahan kode/spec (bukan sekadar pertanyaan atau tugas sepele), invoke skill dev-flow sebelum mengedit: planner -> persetujuan user -> executor -> tanya review -> tanya PR, di branch baru sesuai jenisnya.'
+  hint='Bila prompt ini meminta perubahan kode/spec (bukan sekadar pertanyaan atau tugas sepele), invoke skill dev-flow sebelum mengedit: planner -> persetujuan user -> executor -> commit -> reviewer sebelum PR -> tanya PR, di branch baru sesuai jenisnya.'
 elif printf '%s' "$lower" | grep -Eq '\b(review|cek|check|periksa|merge)\b' &&
   printf '%s' "$lower" | grep -Eq '\bpr\b|\bmr\b|pull request|merge request|/pull/[0-9]+'; then
   hint='Prompt ini meminta review/merge PR: invoke skill review-pr (bukan dev-flow).'
