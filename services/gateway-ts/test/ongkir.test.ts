@@ -1,13 +1,12 @@
-import { createRequire } from "node:module";
 import { join } from "node:path";
 import { test } from "node:test";
+import { pathToFileURL } from "node:url";
 import { repoRoot } from "../src/spectest.ts";
 
-// web/ongkir-format.js is a plain browser script that also exports for Node.
-const require = createRequire(import.meta.url);
-const { formatRupiah, formatEtd, cheapestIndex } = require(
-  join(repoRoot(), "web", "ongkir-format.js"),
-) as {
+// web/js/ongkir.js is a browser ES module whose pure helpers do not touch the DOM at import time.
+const { formatRupiah, formatEtd, cheapestIndex } = (await import(
+  pathToFileURL(join(repoRoot(), "web", "js", "ongkir.js")).href
+)) as {
   formatRupiah: (n: number) => string;
   formatEtd: (etd: { min: number; max: number }) => string;
   cheapestIndex: (options: { price: number }[]) => number;

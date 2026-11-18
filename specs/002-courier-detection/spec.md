@@ -71,7 +71,7 @@ Jika `courier` diisi, gateway hanya proxy biasa ke tracking-go (perilaku 001, ta
 - **R5** — Kode kurir di tabel harus subset dari kurir kanonik (000). Test Rust memastikan setiap contoh di tabel terdeteksi ke kurirnya.
 
 ## UI
-- Tombol kurir pertama: **"Otomatis"** (default terpilih) → request `GET /api/track?awb=…` tanpa `courier`.
+- Di tab Cek Resi (`#/resi`), tombol kurir pertama: **"Otomatis"** (default terpilih) → request `GET /api/track?awb=…` tanpa `courier`.
 - Jika respon punya `detected: true`, tampilkan label kecil "Kurir terdeteksi otomatis: <nama>" dan tandai tombol kurir yang sesuai.
 - Jika error "kurir tidak terdeteksi…", tampilkan pesannya dan biarkan user memilih kurir manual.
 

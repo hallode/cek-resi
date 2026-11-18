@@ -2,7 +2,7 @@
 
 Pintu masuk publik (port `8080`): serve `web/` dan proxy path `/api/*` ke service pemilik. Aturan umum: [../../AGENTS.md](../../AGENTS.md).
 
-- TypeScript dijalankan langsung oleh Node 24 (type stripping): hanya sintaks *erasable* (tanpa `enum`/`namespace`), import pakai ekstensi `.ts`. **Tanpa dependency runtime**; devDeps hanya `typescript`, `@types/node`, `@biomejs/biome`.
+- TypeScript dijalankan langsung oleh Node 24 (type stripping): hanya sintaks _erasable_ (tanpa `enum`/`namespace`), import pakai ekstensi `.ts`. **Tanpa dependency runtime**; devDeps hanya `typescript`, `@types/node`, `@biomejs/biome`.
 - Task: `mise run {dev,test,lint,fmt}:gateway`.
 - Env: `PORT`, `WEB_DIR` (default `../../web`), `TRACKING_URL`, `ONGKIR_URL`.
 - `src/app.ts` — `createApp(config)` + tabel `ROUTES` (path publik → upstream). Menambah path baru milik service lain = satu baris di `ROUTES` + entri upstream.

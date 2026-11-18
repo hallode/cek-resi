@@ -22,7 +22,7 @@ Updated after pulling `7bee66d`. Spec 000 has landed, so the skeleton work is do
 | `services/ongkir-py` | FastAPI app with `/health` only; `uv` + `ruff` + `pytest` + `httpx`; harness `tests/spectest.py`; `tests/test_spec.py` with a `SPEC_FILES` list; own `AGENTS.md` | cities, tariffs, pricing, validation, two endpoints |
 | `services/gateway-ts` | `createApp`, `Upstream = "tracking"`, exact-path `ROUTES` table, 3 s timeout + 502, fake-upstream test helpers | `ongkir` upstream + two routes |
 | Tooling | `mise.toml` (replaces the Makefile): `mise run {setup,dev,test,lint,fmt}:ongkir`; `ONGKIR_URL` already set | nothing |
-| `web/` | static `index.html`, `app.js`, `style.css`, served by the gateway | Cek Ongkir tab |
+| `web/` | single-page tabs (spec 000 F1–F7, spec 005): `index.html`, `app.js` entry, `js/router.js`, `js/ui.js`, `js/resi.js`, shared `css/*`. The Cek Ongkir tab was a "Segera" placeholder | `js/ongkir.js`, tab markup, a small CSS block |
 | CI | none (`.github/` does not exist; open item of 000) | nothing — out of scope |
 
 ## Review checklist
@@ -81,24 +81,27 @@ Work in `services/gateway-ts/`; run with `mise run test:gateway` and `mise run l
 
 ## 3. `web/` — "Cek Ongkir" tab
 
-Read `web/index.html` and `web/app.js` first to match how the current UI is structured, then:
+Follows the single-page frontend rules (spec 000 F1–F7) and the shared components of spec 005: one module per tab, hash route `#/ongkir`, shared `h()`/`icon()`/`announce()` helpers, shared tokens and components, no framework, no build step.
 
-- [x] `web/ongkir-format.js` — pure functions only, no DOM: `formatRupiah(22000)` → `Rp 22.000`, `formatEtd({min,max})` (`3–4 hari`, `1 hari` when min = max), `cheapestIndex(options)`. Loaded as a classic `<script>` like `app.js` (no build step); a `typeof module` guard exports the functions so `node:test` can load it.
-- [x] `services/gateway-ts/test/ongkir-format.test.ts` — loads that file with `createRequire` and tests it (see "UI test" below). Written first (red).
-- [x] Origin and destination dropdowns from `/api/ongkir/cities`.
-- [x] Weight input (grams) + a collapsible block for optional dimensions.
-- [x] Result table: Kurir | Layanan | Estimasi | Harga (via the pure functions above); first row labeled "Termurah".
-- [x] Render with `textContent`/`createElement`, not `innerHTML` (root AGENTS.md rule for API data).
-- [x] Show the server's `error` message (Indonesian).
+- [x] `services/gateway-ts/test/ongkir.test.ts` (red first): tests the pure helpers exported by `web/js/ongkir.js`.
+- [x] `web/js/ongkir.js` — pure, DOM-free exports `formatRupiah(22000)` → `Rp 22.000`, `formatEtd({min,max})` (`3–4 hari`, `1 hari` when min = max), `cheapestIndex(options)`; plus `init()` (listeners) and `enter()` (loads the city list on first visit).
+- [x] `web/index.html` — replace the "Segera hadir" placeholder with the form (origin/destination selects, weight, collapsible dimensions) and a result container; drop the "Segera" badge on the tab.
+- [x] `web/app.js` — `ongkir.init()` and `startRouter({ resi: resi.enter, ongkir: ongkir.enter })`.
+- [x] `web/css/components.css` — a small block for what the shared components don't have (select, dimensions row, price table, "Termurah" tag), using tokens only.
+- [x] Result table: Kurir | Layanan | Estimasi | Harga; first row labeled "Termurah"; courier names from `/api/couriers` with the upper-cased code as fallback.
+- [x] Render with `h()`/`textContent`, never `innerHTML` for API data.
+- [x] States per spec 005: loading skeleton (`aria-busy`), 4xx message next to the form (`role="alert"`, focus back to the weight field), 5xx/network "Layanan sedang sibuk" card with a retry button, result card with focus on its title, live-region announcements.
 
-**UI test (automated, logic only).** `ongkir-format.test.ts` covers `formatRupiah` (`0`, `7000` → `Rp 7.000`, `22000` → `Rp 22.000`, `1000000` → `Rp 1.000.000`), `formatEtd` (range and single value) and `cheapestIndex` (first of a tie). DOM rendering is not covered automatically.
+**UI test (automated, logic only).** `ongkir.test.ts` covers `formatRupiah` (`0`, `7000` → `Rp 7.000`, `22000` → `Rp 22.000`, `1000000` → `Rp 1.000.000`), `formatEtd` (range and single value) and `cheapestIndex` (first of a tie). DOM rendering is not covered automatically.
 
-**Manual check** with `mise run dev` at `http://localhost:8080`:
-1. JKT → BDG, 1500 g → first row POS KILAT `Rp 22.000`, labeled "Termurah".
+**Manual check** with all four services running (`mise run dev`) in real Chrome at 360px and desktop width:
+1. JKT → BDG, 1500 g → first row Pos Indonesia KILAT `Rp 22.000`, labeled "Termurah"; focus moves to the result title.
 2. Fill dimensions SBY → MDN 1000 g 30×20×20 → billable 2 kg, prices match the spec case.
-3. Empty or 0 weight → Indonesian error message shown, no table.
-4. Stop `ongkir-py` → "layanan ongkir tidak tersedia" message.
-5. Regression: switch to the resi tab; a dummy resi and a nonexistent resi still work.
+3. Empty weight → Indonesian error message next to the form, focus on the weight field, no table. `1_000` → weight error.
+4. Stop `ongkir-py` → "Layanan sedang sibuk" card; "Coba lagi" retries.
+5. Switch to Cek Resi and back (and browser back) → the Ongkir form and result are still there (F4).
+6. Regression: Cek Resi with a known resi (`#/resi?courier=sicepat&awb=004000123456`) and an unknown one.
+7. No horizontal page scroll at 360px on the Ongkir tab.
 
 ## 4. Wrap-up
 
@@ -120,9 +123,10 @@ Read `web/index.html` and `web/app.js` first to match how the current UI is stru
 | `services/gateway-ts/src/app.ts`, `src/main.ts` | edit | `ongkir` upstream + two routes + env |
 | `services/gateway-ts/test/app.test.ts`, `test/spec.test.ts` | edit | add `ongkir` upstream, proxy + 502 tests |
 | `services/gateway-ts/AGENTS.md` | edit | env + proxied path |
-| `web/index.html`, `app.js`, `style.css` | edit | Cek Ongkir tab |
-| `web/ongkir-format.js` | new | pure formatting logic, loaded by the page and by the test |
-| `services/gateway-ts/test/ongkir-format.test.ts` | new | `node:test` for that logic (reads a file under `web/` the same way the existing tests read `web/`) |
+| `web/index.html`, `web/app.js` | edit | Cek Ongkir tab markup, entry wiring |
+| `web/js/ongkir.js` | new | the tab module (one module per tab, F3) |
+| `web/css/components.css` | edit | a small block: select, dimensions, price table, tag |
+| `services/gateway-ts/test/ongkir.test.ts` | new | `node:test` for the pure helpers in `web/js/ongkir.js` |
 | `AGENTS.md` (root) | edit | service status cells |
 
 Not touched: `mise.toml` (tasks and `ONGKIR_URL` already exist), `tracking-go`, `detect-rust`, CI, the SQLite DB.
@@ -140,8 +144,8 @@ Root DoD: `mise run lint` and `mise run test` green; spec/contract still accurat
 | Gateway proxies `/api/ongkir*` | `gateway-ts` proxy test with a fake upstream (path, query, status, body unchanged) |
 | Gateway returns 502 when the service is down | `gateway-ts` 502 test |
 | Spec acceptance "cases can also run via the gateway" | **manual**: with `mise run dev`, run a few 004 requests through `:8080` and compare. No `cases.e2e.json` exists for 004, and the gateway tests must not depend on live services |
-| Price/ETD formatting and "Termurah" pick | `services/gateway-ts/test/ongkir-format.test.ts` |
-| Cek Ongkir tab renders and works, resi tracking not broken | **manual** (scenarios 1–5 in step 3); DOM rendering has no automated test |
+| Price/ETD formatting and "Termurah" pick | `services/gateway-ts/test/ongkir.test.ts` |
+| Cek Ongkir tab renders and works, resi tracking not broken | **manual** (scenarios 1–7 in step 3); DOM rendering has no automated test |
 | `mise run lint` and `mise run test` green | those commands |
 
 ## Risky changes
@@ -152,13 +156,14 @@ Root DoD: `mise run lint` and `mise run test` green; spec/contract still accurat
 | Manual validation instead of FastAPI's | more code | built-in 422 violates K2 | `test_validation.py` + spec cases |
 | `Upstream` type gains `ongkir` | existing gateway tests stop compiling | `Config.upstreams` is keyed by `Upstream` | update the two existing test files in the same change |
 | New gateway routes | wrong routing | required by the spec | proxy test + 502 test; exact-path rows copy the existing pattern |
-| Edit existing `web/` | resi tracking could break | new tab lives in the same UI | manual regression scenario 5 |
-| Pure JS module shared by the page and a Node test | the `typeof module` guard is a small pattern the repo doesn't use yet; `tsc`/`biome` may complain about the test's untyped `require` | user chose an automated test over manual-only for the UI logic | keep the guard to one line, no new dependency, no build step; check `mise run lint:gateway` passes |
+| Edit existing `web/` | resi tracking could break | new tab lives in the same UI | manual regression scenario 6 |
+| Node test imports a browser ES module | `web/js/ongkir.js` must stay import-safe in Node (no DOM at import time) | user chose an automated test over manual-only for the UI logic | the pure helpers touch no DOM; DOM work happens only inside `init()`/`enter()`; `tsc`/`biome` pass |
+| Add CSS to the shared `components.css` | spec 005 asks Ongkir to use shared components "without new styles", but a select and a price table have no shared component yet | needed to render the tab | tokens only, one small block with a spec-004 comment |
 | Edit root and service `AGENTS.md` | docs drift | they currently say "skeleton"/"planned" | only the status lines change |
 
 ## Other risks and notes
 
-- **Test location.** The UI test lives in `gateway-ts` only because it is the one place with a JS test runner; it reads `web/` the same way the existing static-file tests do. It does not import any service code (A2).
+- **Test location.** The UI test lives in `gateway-ts` only because it is the one place with a JS test runner; it imports one browser module from `web/js/`. It does not import any service code (A2).
 - **FastAPI 422**: typed query params would produce the wrong error shape. Use `str | None` + manual validation.
 - **Tariff data** stays as constants in code; it does not read the tracking DB (A2, A6).
 - **No CI** exists yet, so "green" means `mise run lint` and `mise run test` locally.
@@ -169,6 +174,7 @@ What differs from the plan as written, and why.
 
 - **`app/validation.py` added.** Validation (R1, R6–R8) lives in its own module instead of `main.py`, so `test_validation.py` can test it without HTTP. Routing stays in `main.py`.
 - **Spec 004 changes (step 0):** added R6 (empty = not given), R7 (strict `^[0-9]+$`, no trim) and R8 (validation order), plus 13 cases (30 total).
-- **`courierName()` fallback in `web/app.js`.** Found while testing in a real browser with tracking down: `/api/couriers` returned an error object and `couriers.find` threw, leaving the ongkir table empty. The tab now falls back to the upper-cased courier code, so it no longer depends on tracking being up.
-- **Verification environment.** `mise` and `uv` were not installed. I ran the same commands directly: `uv sync --locked` + `uv run pytest` + `uv run ruff check/format --check` (uv 0.13.8, Python 3.12), and `npm test` + `biome check` + `tsc` (Node 24.22.3). The browser scenarios ran against a fake tracking server (`tracking-go` could not be built: its modules are not cached and the disk is nearly full).
-- **Pre-existing lint failure.** `biome check` reports one formatting error in `services/gateway-ts/AGENTS.md` (`*erasable*` → `_erasable_`) on a line this change did not touch.
+- **Courier-name fallback.** Found while testing with tracking down: `/api/couriers` returned an error object and `couriers.find` threw, leaving the ongkir table empty. The tab now loads names best-effort and falls back to the upper-cased courier code, so it does not depend on tracking being up.
+- **Merge with `master` (frontend redesign).** `master` moved to a single-page tab frontend (`web/js/*`, `web/css/*`, spec 000 F1–F7, spec 005) while this branch was open. Conflicts in `web/app.js`, `web/index.html`, `web/style.css` (deleted upstream) and `specs/README.md` were resolved by taking `master`'s versions and porting the tab onto the new structure: `web/js/ongkir.js` replaces the earlier `web/ongkir-format.js`, and the CSS moved into `css/components.css`.
+- **Verification environment.** `mise` and `uv` were not installed. I ran the same commands directly: `uv sync --locked` + `uv run pytest` + `uv run ruff check/format --check` (uv 0.13.8, Python 3.12), and `npm test` + `biome check` + `tsc` (Node 24.22.3). The default `agent-browser` engine on this box is Lightpanda, which has no CSS engine, so layout checks use real Chrome (`--engine chrome`). After the merge the browser run used the real `tracking-go`, `ongkir-py` and gateway.
+- **Observed, not changed.** In real Chrome at 360px the Cek Resi result page overflows horizontally, and the active tab can be scrolled out of view in the tab bar (`Cek Ongkir` sits past the right edge). Both are in `master`'s shared frontend, not in this change.

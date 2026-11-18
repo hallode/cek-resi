@@ -1,0 +1,54 @@
+/* Design tokens (spec 005). Components use these, never raw values. */
+:root {
+  color-scheme: light dark;
+
+  --brand: #c8221d;
+  --on-brand: #fff;
+  --bg: #f6f7f9;
+  --surface: #fff;
+  --surface-2: #eef0f3;
+  --text: #1f2328;
+  --muted: #5b6472;
+  --border: #e1e4e8;
+
+  /* status tones: background + foreground, each >= 4.5:1 */
+  --info-bg: #dbeafe;
+  --info-fg: #1e3a8a;
+  --ok-bg: #dcfce7;
+  --ok-fg: #14532d;
+  --warn-bg: #fef3c7;
+  --warn-fg: #7c2d12;
+  --bad-bg: #fee2e2;
+  --bad-fg: #7f1d1d;
+
+  --radius: 12px;
+  --radius-pill: 999px;
+  --shadow: 0 1px 2px rgb(16 24 40 / 6%), 0 1px 3px rgb(16 24 40 / 10%);
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --ease: 160ms ease;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --brand: #ff6b66;
+    --on-brand: #1a0a09;
+    --bg: #0f1216;
+    --surface: #181c22;
+    --surface-2: #232932;
+    --text: #e8eaed;
+    --muted: #a0a8b4;
+    --border: #2c323b;
+
+    --info-bg: #172554;
+    --info-fg: #bfdbfe;
+    --ok-bg: #052e16;
+    --ok-fg: #bbf7d0;
+    --warn-bg: #431407;
+    --warn-fg: #fed7aa;
+    --bad-bg: #450a0a;
+    --bad-fg: #fecaca;
+
+    --shadow: none;
+  }
+}
