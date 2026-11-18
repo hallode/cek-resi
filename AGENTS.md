@@ -53,7 +53,7 @@ mise run agents:sync             # terapkan .claude/agents.toml ke definisi agen
 Detail di `.claude/skills/` (diadaptasi dari [ponytail](https://github.com/dietrichgebert/ponytail), MIT).
 - **Perubahan terkecil yang lengkap** (skill `ponytail`): reuse repo → stdlib → dependency terpasang → baru kode baru. Pemanggil, test, `cases.json`, dan status spec ikut diselesaikan.
 - **Jangan dipotong:** validasi batas kepercayaan, error `{"error": ...}`, keamanan (nomor resi tidak masuk log, `textContent` bukan `innerHTML`), aksesibilitas.
-- **Tiga peran** (skill `dev-flow`): planner → executor → reviewer; model/effort di `.claude/agents.toml`. Review (skill `review-code`) read-only dengan temuan terverifikasi.
+- **Alur default tugas coding non-sepele** (skill `dev-flow`): subagent planner membuat rencana → user menyetujui → subagent executor mengerjakan → user ditanya mau review → subagent reviewer. Model/effort tiap subagent dari `.claude/agents.toml` (jangan override saat memanggil). Review (skill `review-code`) read-only dengan temuan terverifikasi.
 - Jangan melaporkan hasil yang tidak kamu lihat; tutup balasan dengan apa yang dilewati dan risikonya. Push, komentar/merge PR, dan `mise run scan` hanya atas izin jelas.
 
 ## Checklist service baru

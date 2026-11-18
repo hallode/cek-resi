@@ -1,42 +1,66 @@
 ---
 name: dev-flow
-description: Alur kerja tiga peran untuk cek-resi - planner (rencana) -> executor (kerjakan) -> reviewer (tinjau independen), berulang sampai tidak ada Must fix, lalu verifikasi dan push. Pakai untuk tugas yang menyentuh lebih dari satu file/service atau yang berisiko; tugas sepele cukup dikerjakan langsung. Pemanggilan - /dev-flow <tugas>.
-argument-hint: "<deskripsi tugas>"
+description: Alur kerja default untuk SETIAP tugas coding yang bukan sepele di repo cek-resi (fitur, perbaikan bug, refaktor, perubahan spec). Subagent planner membuat rencana -> user menyetujui -> subagent executor mengerjakan -> user ditanya mau review atau tidak -> subagent reviewer meninjau. Pakai juga saat user minta "plan", "rencanakan", "kerjakan", atau /dev-flow.
+argument-hint: "<deskripsi tugas> [review=ask|always|never] [push=on-green|never] [rounds=N] [ponytail=lite|full|ultra]"
 ---
 
-# Dev flow: planner -> executor -> reviewer
+# Dev flow: plan -> OK -> execute -> review?
+
+Skill ini dijalankan oleh **sesi utama** (orkestrator). Subagent tidak bisa bertanya ke user, jadi setiap gerbang persetujuan ditanyakan oleh sesi utama dengan `AskUserQuestion`.
 
 ## Pengaturan
-**Model dan effort** tiap peran hanya diatur di `.claude/agents.toml` (default effort `high`), lalu `mise run agents:sync` menuliskannya ke frontmatter agen sehingga subagent otomatis memakainya. Jangan mengedit `model:`/`effort:` di berkas agen langsung; `mise run lint` akan gagal.
-
-| Peran | Berkas | Tool | Tugas |
-|---|---|---|---|
-| **planner** | `.claude/agents/planner.md` | read-only | rencana berurutan + cara pembuktian |
-| **executor** | `.claude/agents/executor.md` | baca + edit + Bash | kerjakan, jalankan lint/test |
-| **reviewer** | `.claude/agents/reviewer.md` | read-only | tinjau independen, temuan terverifikasi |
+**Model dan effort** tiap peran diatur di `.claude/agents.toml` (default effort `high`) dan diterapkan ke frontmatter agen lewat `mise run agents:sync`. Saat memanggil subagent, **jangan** mengisi parameter `model` atau `effort` di tool Agent. Cukup `subagent_type: "planner" | "executor" | "reviewer"`, maka config itu yang dipakai.
 
 | Opsi | Default | Arti |
 |---|---|---|
-| `ponytail` | `full` | level executor: `lite`, `full`, `ultra` ([ponytail](../ponytail/SKILL.md)) |
+| `review` | `ask` | `ask`: tanya user setelah eksekusi; `always`: langsung review; `never`: lewati |
+| `push` | `on-green` | commit + push ke `master` setelah lint/test hijau dan tanpa Must fix; `never`: hanya commit |
 | `rounds` | `2` | maksimal putaran perbaikan -> tinjau ulang |
-| `planner` | `auto` | `auto`: lewati untuk tugas sepele; `always`; `never` |
-| `push` | `on-green` | push ke `master` setelah hijau tanpa Must fix; `never` untuk menahan |
+| `ponytail` | `full` | level executor ([ponytail](../ponytail/SKILL.md)) |
 
-Opsi bisa disebut di pemanggilan, mis. `/dev-flow ponytail=ultra rounds=1 <tugas>`.
+Opsi bisa disebut di pemanggilan, mis. `/dev-flow review=always <tugas>`.
 
 ## Langkah
-Saat memanggil agen, beri **path spesifik** (file, spec, kasus) dari Peta konteks di `AGENTS.md`, bukan "baca repo". Itu cara utama menjaga konteks tetap kecil.
 
-1. **Rencana.** Tugas sepele (satu file, jelas) -> lewati, tulis rencana satu baris. Selain itu panggil agen `planner` dengan tugas dan konteks yang dibutuhkan. Bila ada **pertanyaan terbuka** yang milik user, tanyakan dulu; jangan menebak.
-2. **Persetujuan lingkup** (hanya bila rencana besar, menyentuh banyak service, atau mengubah kontrak): tunjukkan rencananya ke user sebelum eksekusi.
-3. **Spec dulu.** Perilaku berubah -> executor mengubah `spec.md` + `cases.json` lebih dulu.
-4. **Eksekusi.** Panggil `executor` per langkah rencana. Langkah di service berbeda yang tidak berbagi file boleh paralel; selebihnya berurutan. Executor menjalankan `lint`/`test` dan melapor dengan angka.
-5. **Tinjau.** Panggil `reviewer` dengan **konteks segar**: berikan diff (`git diff` / hash commit) dan spec terkait, **jangan** kesimpulan atau ringkasan executor, agar tinjauannya independen.
-6. **Putaran perbaikan.** Ada Must fix -> executor memperbaiki, reviewer meninjau ulang diff perbaikannya. Maksimal `rounds`. Sisa Must fix setelah itu dilaporkan ke user, bukan di-push.
-7. **Verifikasi akhir.** Jalankan `mise run lint` dan `mise run test` sendiri dan baca hasilnya. Jangan percaya laporan agen tanpa itu.
-8. **Selesai.** Tanpa Must fix dan hijau -> commit dan (bila `push=on-green`) push ke `master`; setelahnya cek `git ls-remote --heads origin master` sama dengan HEAD lokal. Laporkan: apa yang berubah, hasil verifikasi, temuan Should fix/Nice to have yang dibiarkan, dan yang belum bisa diperiksa.
+Selalu beri subagent **path spesifik** (file, spec, kasus) dari Peta konteks di `AGENTS.md`, bukan "baca repo".
+
+### 1. Plan (subagent `planner`)
+Panggil Agent `subagent_type: "planner"` dengan: tugas dari user apa adanya, baris Peta konteks yang relevan, dan path yang sudah diketahui. Jangan menulis rencana sendiri dan jangan mulai mengedit.
+
+### 2. Gerbang: setujui rencana
+Hasil subagent tidak terlihat oleh user, jadi **tampilkan rencananya** (tujuan, di luar lingkup, spec yang diubah, langkah, risiko) secara ringkas tapi lengkap. Bila planner menulis **Pertanyaan terbuka**, tanyakan itu dulu.
+
+Lalu tanya dengan `AskUserQuestion`:
+- **"OK, kerjakan"**: lanjut ke langkah 3 tanpa pertanyaan lain.
+- **"Ubah rencana"**: kirim catatan user ke planner (panggil ulang dengan rencana lama + catatan), lalu kembali ke gerbang ini.
+- **"Batal"**: berhenti dan jangan mengubah apa pun.
+
+Tidak ada file yang boleh diubah sebelum user memilih "OK, kerjakan".
+
+### 3. Execute (subagent `executor`), otomatis setelah OK
+Panggil Agent `subagent_type: "executor"` dengan **rencana yang disetujui apa adanya**, level `ponytail`, dan path yang relevan. Spec + `cases.json` diubah dulu bila perilaku berubah. Langkah di service berbeda yang tidak berbagi file boleh dipanggil paralel (beberapa executor dalam satu pesan); selebihnya berurutan.
+
+Setelah executor selesai, jalankan sendiri `mise run lint` dan `mise run test` lalu baca hasilnya. Laporan agen tidak cukup. Bila merah: panggil executor lagi dengan output kegagalannya (maksimal `rounds` kali), lalu laporkan ke user bila masih merah.
+
+### 4. Gerbang: review?
+Ringkas ke user apa yang berubah (file + hasil lint/test berangka). Lalu, bila `review=ask`, tanya dengan `AskUserQuestion`:
+- **"Ya, review"**: lanjut ke langkah 5.
+- **"Tidak, selesai"**: lanjut ke langkah 6.
+
+### 5. Review (subagent `reviewer`)
+Panggil Agent `subagent_type: "reviewer"` dengan **konteks segar**: hanya ruang lingkup diff (`git diff` / hash commit) dan spec terkait, **bukan** ringkasan atau klaim executor, agar tinjauannya independen. Tampilkan laporannya ke user (Must fix / Should fix / Nice to have + verdict).
+
+Bila ada **Must fix**, tanya dengan `AskUserQuestion`:
+- **"Perbaiki Must fix"**: executor memperbaiki (beri daftar temuannya), lalu jalankan lint/test dan reviewer meninjau ulang diff perbaikan saja. Maksimal `rounds` putaran.
+- **"Biarkan, saya putuskan nanti"**: lanjut ke langkah 6 tanpa push.
+
+Should fix / Nice to have tidak dikerjakan otomatis; sebutkan saja.
+
+### 6. Selesai
+- Commit selalu. Push ke `master` hanya bila `push=on-green`, lint/test hijau, dan **tidak ada Must fix yang tersisa**; lalu cek `git ls-remote --heads origin master` sama dengan HEAD lokal.
+- Laporkan: apa yang berubah, hasil verifikasi, temuan yang dibiarkan, dan yang belum bisa diperiksa (mis. tampilan browser).
 
 ## Batas
-- Aturan tidak berubah karena alurnya otomatis: tanpa spec tidak ada fitur, `mise run scan` dan aksi keluar (komentar/merge PR) hanya atas permintaan user.
-- Jangan memperluas tugas karena izin push ada.
-- Operasi berisiko atau tidak bisa dibalik tetap ditanyakan.
+- Aturan repo tetap berlaku: tanpa spec tidak ada fitur; `mise run scan`, komentar/merge PR hanya atas permintaan user.
+- Tugas yang benar-benar sepele (typo, satu baris yang jelas) boleh dikerjakan langsung tanpa alur ini; bila ragu, pakai alurnya.
+- Operasi berisiko atau tidak bisa dibalik tetap ditanyakan, walaupun rencana sudah disetujui.
