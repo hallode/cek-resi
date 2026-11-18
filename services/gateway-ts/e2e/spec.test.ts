@@ -6,7 +6,10 @@ import { loadJSON, runCases } from "../src/spectest.ts";
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:8080";
 
 // e2e spec files whose services are implemented. Add an entry per spec.
-const SPEC_FILES = ["specs/002-courier-detection/cases.e2e.json"];
+const SPEC_FILES = [
+  "specs/002-courier-detection/cases.e2e.json",
+  "specs/003-bulk-tracking/cases.e2e.json",
+];
 
 for (const rel of SPEC_FILES) {
   const file = loadJSON(rel);

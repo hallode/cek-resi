@@ -2,7 +2,7 @@
 
 import { replaceParams } from "./router.js";
 import {
-  announce, copyButton, formatDateTime, formatTime, groupByDate, h, icon, relativeTime,
+  announce, copyButton, formatDateTime, formatTime, groupByDate, h, icon, relativeTime, STATUS, statusOf,
 } from "./ui.js";
 
 const LEGACY_COURIER_KEY = "cekresi.courier"; // a manual choice is no longer persisted (spec 002)
@@ -21,13 +21,6 @@ const EXAMPLES = [
   { courier: "jnt", awb: "JP1234567890" },
 ];
 
-const STATUS = {
-  PICKED_UP: { label: "Dijemput", icon: "package", tone: "info" },
-  IN_TRANSIT: { label: "Dalam Perjalanan", icon: "truck", tone: "info" },
-  OUT_FOR_DELIVERY: { label: "Sedang Diantar", icon: "bike", tone: "warn" },
-  DELIVERED: { label: "Terkirim", icon: "check-circle", tone: "ok" },
-  RETURNED: { label: "Diretur", icon: "undo", tone: "bad" },
-};
 const STEPS = ["PICKED_UP", "IN_TRANSIT", "OUT_FOR_DELIVERY", "DELIVERED"];
 
 const $ = (id) => document.getElementById(id);
@@ -42,7 +35,6 @@ const state = {
 const normalizeAwb = (s) => s.trim().toUpperCase();
 const courierOptions = () => [AUTO_OPTION, ...state.couriers];
 const courierName = (code) => courierOptions().find((c) => c.code === code)?.name ?? code;
-const statusOf = (s) => STATUS[s] ?? { label: s, icon: "package", tone: "info" };
 
 // ------------------------------------------------------------------ init
 

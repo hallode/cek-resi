@@ -50,6 +50,16 @@ export function groupByDate(events, now = Date.now()) {
   return groups;
 }
 
+// Status label, icon and color tone (spec 005: always icon + text + color).
+export const STATUS = {
+  PICKED_UP: { label: "Dijemput", icon: "package", tone: "info" },
+  IN_TRANSIT: { label: "Dalam Perjalanan", icon: "truck", tone: "info" },
+  OUT_FOR_DELIVERY: { label: "Sedang Diantar", icon: "bike", tone: "warn" },
+  DELIVERED: { label: "Terkirim", icon: "check-circle", tone: "ok" },
+  RETURNED: { label: "Diretur", icon: "undo", tone: "bad" },
+};
+export const statusOf = (s) => STATUS[s] ?? { label: s, icon: "package", tone: "info" };
+
 // ---------------------------------------------------------------- DOM
 
 /** Creates an element. props: class, text, on<event>, other keys become attributes. */

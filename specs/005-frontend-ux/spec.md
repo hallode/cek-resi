@@ -143,6 +143,7 @@ web/
 └── js/
     ├── router.js        (000)
     ├── resi.js          tab Cek Resi (001, 002)
+    ├── bulk.js          tab Banyak Resi (003)
     └── ui.js            helper bersama: format waktu WIB, salin ke clipboard, live region, skeleton
 ```
 

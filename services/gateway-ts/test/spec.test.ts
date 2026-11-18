@@ -6,7 +6,7 @@ import { listen } from "./helpers.ts";
 
 // Spec cases this service implements at `level: service`. Add an entry when a
 // spec owned by gateway-ts is implemented.
-const SPEC_FILES = ["specs/000-architecture/cases.json"];
+const SPEC_FILES = ["specs/000-architecture/cases.json", "specs/003-bulk-tracking/cases.json"];
 
 for (const rel of SPEC_FILES) {
   const file = loadJSON(rel);

@@ -1,7 +1,7 @@
 {
   "spec": "003-bulk-tracking",
   "level": "service",
-  "target": "gateway-ts (no upstream needed: request validation only)",
+  "target": "gateway-ts",
   "cases": [
     {
       "name": "body without items",
@@ -36,6 +36,55 @@
         }
       },
       "expect": { "status": 400, "body": { "error": "maksimal 10 resi per permintaan" } }
+    },
+    {
+      "name": "body is not JSON",
+      "request": { "method": "POST", "path": "/api/track/bulk", "raw_body": "awb=004000123456" },
+      "expect": { "status": 400, "body": { "error": "body harus JSON dengan field items" } }
+    },
+    {
+      "name": "body is a JSON array",
+      "request": { "method": "POST", "path": "/api/track/bulk", "body": [{ "awb": "004000123456" }] },
+      "expect": { "status": 400, "body": { "error": "body harus JSON dengan field items" } }
+    },
+    {
+      "name": "items is not an array",
+      "request": { "method": "POST", "path": "/api/track/bulk", "body": { "items": { "awb": "004000123456" } } },
+      "expect": { "status": 400, "body": { "error": "body harus JSON dengan field items" } }
+    },
+    {
+      "name": "item is not an object",
+      "request": { "method": "POST", "path": "/api/track/bulk", "body": { "items": ["004000123456"] } },
+      "expect": { "status": 400, "body": { "error": "body harus JSON dengan field items" } }
+    },
+    {
+      "name": "courier is not a string",
+      "request": { "method": "POST", "path": "/api/track/bulk", "body": { "items": [{ "awb": "004000123456", "courier": 5 }] } },
+      "expect": { "status": 400, "body": { "error": "body harus JSON dengan field items" } }
+    },
+    {
+      "name": "awb is not a string",
+      "request": { "method": "POST", "path": "/api/track/bulk", "body": { "items": [{ "awb": 4000123456 }] } },
+      "expect": { "status": 400, "body": { "error": "body harus JSON dengan field items" } }
+    },
+    {
+      "name": "missing awb counts as blank",
+      "request": { "method": "POST", "path": "/api/track/bulk", "body": { "items": [{ "courier": "jne" }] } },
+      "expect": { "status": 400, "body": { "error": "setiap item wajib punya awb" } }
+    },
+    {
+      "name": "null awb counts as blank",
+      "request": { "method": "POST", "path": "/api/track/bulk", "body": { "items": [{ "awb": null }] } },
+      "expect": { "status": 400, "body": { "error": "setiap item wajib punya awb" } }
+    },
+    {
+      "name": "blank awb is checked before the limit",
+      "request": {
+        "method": "POST",
+        "path": "/api/track/bulk",
+        "body": { "items": [{ "awb": "A01" }, { "awb": "A02" }, { "awb": "A03" }, { "awb": "A04" }, { "awb": "A05" }, { "awb": "A06" }, { "awb": "A07" }, { "awb": "A08" }, { "awb": "A09" }, { "awb": "A10" }, { "awb": "A11" }, { "awb": "" }] }
+      },
+      "expect": { "status": 400, "body": { "error": "setiap item wajib punya awb" } }
     }
   ]
 }

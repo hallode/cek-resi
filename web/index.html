@@ -19,7 +19,7 @@
       <a href="#/resi" class="logo">cek<span>resi</span></a>
       <nav class="tabs" aria-label="Fitur">
         <a class="tab" href="#/resi" data-tab="resi">Cek Resi</a>
-        <a class="tab" href="#/bulk" data-tab="bulk">Banyak Resi <span class="tab-soon">Segera</span></a>
+        <a class="tab" href="#/bulk" data-tab="bulk">Banyak Resi</a>
         <a class="tab" href="#/ongkir" data-tab="ongkir">Cek Ongkir</a>
       </nav>
     </div>
@@ -69,10 +69,26 @@
 
     <!-- Tab: Banyak Resi (spec 003) -->
     <div data-view="bulk" hidden>
-      <section class="card state-card">
-        <h1>Banyak Resi</h1>
-        <p class="muted">Segera hadir. Cek sampai 10 resi sekaligus dalam satu tabel.</p>
+      <section class="card search-card" aria-labelledby="bulk-heading">
+        <h1 id="bulk-heading">Cek Banyak Resi</h1>
+        <p class="muted">Cek sampai 10 resi sekaligus dalam satu tabel. Data yang tampil adalah data demo.</p>
+
+        <form id="bulk-form" novalidate>
+          <label class="label" for="bulk-awbs">Daftar No Resi</label>
+          <textarea id="bulk-awbs" class="textarea" rows="5" autocomplete="off" autocapitalize="characters"
+                    spellcheck="false" placeholder="Satu resi per baris, atau pisahkan dengan koma/spasi"
+                    aria-describedby="bulk-hint bulk-error"></textarea>
+          <p id="bulk-hint" class="field-hint"></p>
+          <p id="bulk-error" class="field-error" role="alert" hidden></p>
+
+          <span class="label" id="bulk-courier-label">Ekspedisi</span>
+          <div id="bulk-couriers" class="chips chips-scroll" role="radiogroup" aria-labelledby="bulk-courier-label"></div>
+
+          <button type="submit" id="bulk-submit" class="btn btn-primary btn-block"><span>Cek Semua</span></button>
+        </form>
       </section>
+
+      <div id="bulk-state" aria-busy="false"></div>
     </div>
 
     <!-- Tab: Cek Ongkir (spec 004) -->

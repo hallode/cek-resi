@@ -52,6 +52,11 @@ depends = ["fmt:*"]
 description = "Scan all lockfiles for known vulnerabilities (osv.dev)"
 run = "osv-scanner scan source --recursive --config osv-scanner.toml services/"
 
+[tasks.e2e]
+description = "Run specs/*/cases.e2e.json against the gateway (needs `mise run dev` running)"
+dir = "{{config_root}}/services/gateway-ts"
+run = "npm run test:e2e"
+
 # ------------------------------------------------------- tracking-go (Go)
 
 [tasks."setup:tracking"]
