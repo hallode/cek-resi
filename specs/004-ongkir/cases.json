@@ -509,6 +509,175 @@
           "error": "dimensi harus bilangan bulat 1-200 cm"
         }
       }
+    },
+    {
+      "name": "weight with underscore",
+      "request": {
+        "method": "GET",
+        "path": "/api/ongkir?origin=JKT&destination=BDG&weight=1_000"
+      },
+      "expect": {
+        "status": 400,
+        "body": {
+          "error": "weight harus bilangan bulat 1-50000 gram"
+        }
+      }
+    },
+    {
+      "name": "weight negative",
+      "request": {
+        "method": "GET",
+        "path": "/api/ongkir?origin=JKT&destination=BDG&weight=-5"
+      },
+      "expect": {
+        "status": 400,
+        "body": {
+          "error": "weight harus bilangan bulat 1-50000 gram"
+        }
+      }
+    },
+    {
+      "name": "weight with plus sign",
+      "request": {
+        "method": "GET",
+        "path": "/api/ongkir?origin=JKT&destination=BDG&weight=%2B5"
+      },
+      "expect": {
+        "status": 400,
+        "body": {
+          "error": "weight harus bilangan bulat 1-50000 gram"
+        }
+      }
+    },
+    {
+      "name": "weight with surrounding space",
+      "request": {
+        "method": "GET",
+        "path": "/api/ongkir?origin=JKT&destination=BDG&weight=%205"
+      },
+      "expect": {
+        "status": 400,
+        "body": {
+          "error": "weight harus bilangan bulat 1-50000 gram"
+        }
+      }
+    },
+    {
+      "name": "dimension not numeric",
+      "request": {
+        "method": "GET",
+        "path": "/api/ongkir?origin=JKT&destination=BDG&weight=1000&length=abc&width=10&height=10"
+      },
+      "expect": {
+        "status": 400,
+        "body": {
+          "error": "dimensi harus bilangan bulat 1-200 cm"
+        }
+      }
+    },
+    {
+      "name": "dimension zero",
+      "request": {
+        "method": "GET",
+        "path": "/api/ongkir?origin=JKT&destination=BDG&weight=1000&length=10&width=10&height=0"
+      },
+      "expect": {
+        "status": 400,
+        "body": {
+          "error": "dimensi harus bilangan bulat 1-200 cm"
+        }
+      }
+    },
+    {
+      "name": "empty origin counts as missing",
+      "request": {
+        "method": "GET",
+        "path": "/api/ongkir?origin=&destination=BDG&weight=1000"
+      },
+      "expect": {
+        "status": 400,
+        "body": {
+          "error": "parameter origin, destination, dan weight wajib diisi"
+        }
+      }
+    },
+    {
+      "name": "order: unknown origin beats bad weight",
+      "request": {
+        "method": "GET",
+        "path": "/api/ongkir?origin=XXX&destination=BDG&weight=0"
+      },
+      "expect": {
+        "status": 400,
+        "body": {
+          "error": "kota asal tidak dikenal"
+        }
+      }
+    },
+    {
+      "name": "order: unknown destination beats bad weight",
+      "request": {
+        "method": "GET",
+        "path": "/api/ongkir?origin=JKT&destination=XXX&weight=0"
+      },
+      "expect": {
+        "status": 400,
+        "body": {
+          "error": "kota tujuan tidak dikenal"
+        }
+      }
+    },
+    {
+      "name": "order: bad weight beats partial dimensions",
+      "request": {
+        "method": "GET",
+        "path": "/api/ongkir?origin=JKT&destination=BDG&weight=0&length=10"
+      },
+      "expect": {
+        "status": 400,
+        "body": {
+          "error": "weight harus bilangan bulat 1-50000 gram"
+        }
+      }
+    },
+    {
+      "name": "order: partial dimensions beat bad dimension",
+      "request": {
+        "method": "GET",
+        "path": "/api/ongkir?origin=JKT&destination=BDG&weight=1000&length=201&width=10"
+      },
+      "expect": {
+        "status": 400,
+        "body": {
+          "error": "length, width, height harus diisi semua atau tidak sama sekali"
+        }
+      }
+    },
+    {
+      "name": "empty dimensions count as not given",
+      "request": {
+        "method": "GET",
+        "path": "/api/ongkir?origin=JKT&destination=BDG&weight=1000&length=&width=&height="
+      },
+      "expect": {
+        "status": 200,
+        "body": {
+          "billable_weight_kg": 1
+        }
+      }
+    },
+    {
+      "name": "volumetric equals actual",
+      "request": {
+        "method": "GET",
+        "path": "/api/ongkir?origin=JKT&destination=BDG&weight=1500&length=30&width=30&height=10"
+      },
+      "expect": {
+        "status": 200,
+        "body": {
+          "billable_weight_kg": 2
+        }
+      }
     }
   ]
 }

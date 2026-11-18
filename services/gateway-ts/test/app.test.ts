@@ -11,8 +11,16 @@ async function startGateway(
   t: Parameters<typeof listen>[0],
   trackingUrl: string,
   upstreamTimeoutMs = 3000,
+  ongkirUrl = "http://127.0.0.1:1",
 ): Promise<string> {
-  return listen(t, createApp({ webDir, upstreams: { tracking: trackingUrl }, upstreamTimeoutMs }));
+  return listen(
+    t,
+    createApp({
+      webDir,
+      upstreams: { tracking: trackingUrl, ongkir: ongkirUrl },
+      upstreamTimeoutMs,
+    }),
+  );
 }
 
 test("serves index.html at /", async (t) => {
@@ -118,4 +126,33 @@ test("upstream timeout → 502", async (t) => {
   const base = await startGateway(t, tracking, 100);
   const res = await fetch(`${base}/api/couriers`);
   t.assert.equal(res.status, 502);
+});
+
+test("proxies ongkir paths with query, status and body unchanged", async (t) => {
+  const seen: string[] = [];
+  const ongkir = await fakeUpstream(t, (req, res) => {
+    seen.push(req.url ?? "");
+    res.writeHead(400, { "content-type": "application/json" });
+    res.end(JSON.stringify({ error: "kota asal tidak dikenal" }));
+  });
+  const base = await startGateway(t, "http://127.0.0.1:1", 3000, ongkir);
+
+  const res = await fetch(`${base}/api/ongkir?origin=XXX&destination=BDG&weight=1000`);
+  t.assert.equal(res.status, 400);
+  t.assert.deepEqual(await res.json(), { error: "kota asal tidak dikenal" });
+
+  await fetch(`${base}/api/ongkir/cities`);
+  t.assert.deepEqual(seen, [
+    "/api/ongkir?origin=XXX&destination=BDG&weight=1000",
+    "/api/ongkir/cities",
+  ]);
+});
+
+test("ongkir upstream down → 502", async (t) => {
+  const base = await startGateway(t, "http://127.0.0.1:1");
+  for (const path of ["/api/ongkir?origin=JKT&destination=BDG&weight=1000", "/api/ongkir/cities"]) {
+    const res = await fetch(base + path);
+    t.assert.equal(res.status, 502, path);
+    t.assert.deepEqual(await res.json(), { error: "layanan ongkir tidak tersedia" });
+  }
 });

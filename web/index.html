@@ -20,7 +20,7 @@
       <nav class="tabs" aria-label="Fitur">
         <a class="tab" href="#/resi" data-tab="resi">Cek Resi</a>
         <a class="tab" href="#/bulk" data-tab="bulk">Banyak Resi <span class="tab-soon">Segera</span></a>
-        <a class="tab" href="#/ongkir" data-tab="ongkir">Cek Ongkir <span class="tab-soon">Segera</span></a>
+        <a class="tab" href="#/ongkir" data-tab="ongkir">Cek Ongkir</a>
       </nav>
     </div>
   </header>
@@ -73,10 +73,36 @@
 
     <!-- Tab: Cek Ongkir (spec 004) -->
     <div data-view="ongkir" hidden>
-      <section class="card state-card">
-        <h1>Cek Ongkir</h1>
-        <p class="muted">Segera hadir. Bandingkan tarif antar ekspedisi sebelum mengirim.</p>
+      <section class="card search-card" aria-labelledby="ongkir-heading">
+        <h1 id="ongkir-heading">Cek Ongkir</h1>
+        <p class="muted">Bandingkan tarif antar ekspedisi sebelum mengirim. Data yang tampil adalah data demo.</p>
+
+        <form id="ongkir-form" novalidate>
+          <label class="label" for="o-origin">Kota asal</label>
+          <select id="o-origin" class="select"></select>
+
+          <label class="label" for="o-destination">Kota tujuan</label>
+          <select id="o-destination" class="select"></select>
+
+          <label class="label" for="o-weight">Berat (gram)</label>
+          <div class="input-wrap">
+            <input id="o-weight" name="weight" type="text" inputmode="numeric" autocomplete="off"
+                   placeholder="Contoh: 1500" aria-describedby="o-error">
+          </div>
+          <p id="o-error" class="field-error" role="alert" hidden></p>
+
+          <button type="button" id="o-dims-toggle" class="link-btn dims-toggle" aria-expanded="false" aria-controls="o-dims">Tambah dimensi paket (opsional)</button>
+          <div id="o-dims" class="dims" hidden>
+            <div><label class="label" for="o-length">Panjang (cm)</label><div class="input-wrap"><input id="o-length" type="text" inputmode="numeric" autocomplete="off"></div></div>
+            <div><label class="label" for="o-width">Lebar (cm)</label><div class="input-wrap"><input id="o-width" type="text" inputmode="numeric" autocomplete="off"></div></div>
+            <div><label class="label" for="o-height">Tinggi (cm)</label><div class="input-wrap"><input id="o-height" type="text" inputmode="numeric" autocomplete="off"></div></div>
+          </div>
+
+          <button type="submit" id="o-submit" class="btn btn-primary btn-block"><span>Cek Ongkir</span></button>
+        </form>
       </section>
+
+      <div id="o-state" aria-busy="false"></div>
     </div>
   </main>
 

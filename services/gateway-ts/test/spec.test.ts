@@ -13,7 +13,10 @@ for (const rel of SPEC_FILES) {
   test(file.spec, async (t) => {
     const base = await listen(
       t,
-      createApp({ webDir: join(repoRoot(), "web"), upstreams: { tracking: "http://127.0.0.1:1" } }),
+      createApp({
+        webDir: join(repoRoot(), "web"),
+        upstreams: { tracking: "http://127.0.0.1:1", ongkir: "http://127.0.0.1:1" },
+      }),
     );
     await runCases(t, file, "gateway-ts", base);
   });

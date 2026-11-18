@@ -3,7 +3,7 @@ import { sendError, sendJSON } from "./http.ts";
 import { proxy } from "./proxy.ts";
 import { serveStatic } from "./static.ts";
 
-export type Upstream = "tracking";
+export type Upstream = "tracking" | "ongkir";
 
 export type Config = {
   webDir: string;
@@ -18,6 +18,8 @@ export type Config = {
 const ROUTES: ReadonlyArray<{ path: string; upstream: Upstream }> = [
   { path: "/api/couriers", upstream: "tracking" },
   { path: "/api/track", upstream: "tracking" },
+  { path: "/api/ongkir", upstream: "ongkir" },
+  { path: "/api/ongkir/cities", upstream: "ongkir" },
 ];
 
 export function createApp(cfg: Config): Server {

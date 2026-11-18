@@ -7,6 +7,7 @@ const app = createApp({
   webDir: process.env.WEB_DIR ?? fileURLToPath(new URL("../../../web/", import.meta.url)),
   upstreams: {
     tracking: process.env.TRACKING_URL ?? "http://localhost:8081",
+    ongkir: process.env.ONGKIR_URL ?? "http://localhost:8083",
   },
 });
 

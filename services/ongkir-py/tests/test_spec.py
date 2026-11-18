@@ -7,7 +7,7 @@ from . import spectest
 
 # Spec cases this service implements. Add an entry when a spec owned by
 # ongkir-py is implemented (e.g. specs/004-ongkir/cases.json).
-SPEC_FILES = ["specs/000-architecture/cases.json"]
+SPEC_FILES = ["specs/000-architecture/cases.json", "specs/004-ongkir/cases.json"]
 
 
 @pytest.mark.parametrize("rel", SPEC_FILES)

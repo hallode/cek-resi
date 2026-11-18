@@ -10,7 +10,7 @@ Repo ini **spec-driven**: perilaku sistem didefinisikan dulu di `specs/`, baru d
 | [001](001-tracking-provider/spec.md) | Tracking + provider adapter | `tracking-go` | Go | Draft (API sudah ada) | 000 |
 | [002](002-courier-detection/spec.md) | Deteksi kurir otomatis | `detect-rust` | Rust | Draft | 000, 001 |
 | [003](003-bulk-tracking/spec.md) | Cek banyak resi + permalink | `gateway-ts` | TypeScript | Draft | 001, 002 |
-| [004](004-ongkir/spec.md) | Cek ongkir | `ongkir-py` | Python | Draft | 000 |
+| [004](004-ongkir/spec.md) | Cek ongkir | `ongkir-py` | Python | Implemented | 000 |
 | [005](005-frontend-ux/spec.md) | Frontend UI/UX (desain, komponen, aksesibilitas) | `web/` | HTML/CSS/JS | Implemented sebagian (belum diverifikasi di browser) | 000, 001 |
 | [006](006-security-scan/spec.md) | Pemindaian keamanan dependency (OSV) | repo | osv-scanner | Draft (scan awal belum dijalankan) | 000 |
 
@@ -26,7 +26,7 @@ Tiap spec dikerjakan oleh dev pemilik service-nya, termasuk tugas `web/` di spec
 | 001 | provider adapter + field `source` | Go | sudah ada (`js/resi.js`, permalink `#/resi`) | sekarang |
 | 002 | `/api/detect` + tabel pola; track tanpa kurir di gateway | Rust + TS | tombol "Otomatis" di tab Cek Resi | 001 (BE), kerangka tab (FE) |
 | 003 | `POST /api/track/bulk`, `resolve.ts` bersama | TS | `js/bulk.js`, permalink `#/bulk` | 001 + 002 |
-| 004 | kota, tarif, rumus ongkir; proxy `/api/ongkir*` di gateway | Python + TS | `js/ongkir.js` | BE sekarang; FE setelah kerangka tab |
+| 004 | — (terimplementasi) | Python + TS | `js/ongkir.js` | — |
 
 Spec **005** (UI/UX) tidak punya backend dan tidak punya `cases.json`; diverifikasi lewat checklist di spec-nya. Tampilan semua tab mengikuti 005, dan 003/004 memakai komponen bersama yang didefinisikan di sana.
 
