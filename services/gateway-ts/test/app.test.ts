@@ -17,7 +17,7 @@ async function startGateway(
     t,
     createApp({
       webDir,
-      upstreams: { tracking: trackingUrl, ongkir: ongkirUrl },
+      upstreams: { tracking: trackingUrl, detect: "http://127.0.0.1:1", ongkir: ongkirUrl },
       upstreamTimeoutMs,
     }),
   );

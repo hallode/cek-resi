@@ -4,8 +4,11 @@ use serde::Deserialize;
 use serde_json::Value;
 
 /// Spec cases this service implements. Add an entry when a spec owned by
-/// detect-rust is implemented (e.g. specs/002-courier-detection/cases.json).
-const SPEC_FILES: &[&str] = &["specs/000-architecture/cases.json"];
+/// detect-rust is implemented.
+const SPEC_FILES: &[&str] = &[
+    "specs/000-architecture/cases.json",
+    "specs/002-courier-detection/cases.json",
+];
 
 #[tokio::test]
 async fn specs() {
