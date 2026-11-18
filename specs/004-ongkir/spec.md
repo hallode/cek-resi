@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Implemented |
 | Service pemilik | `ongkir-py` (Python) |
 | Service lain yang tersentuh | `gateway-ts` (proxy prefix `/api/ongkir`), `web/` |
 | Bergantung pada | 000 |
@@ -92,6 +92,9 @@ Selain cek resi, user ingin membandingkan ongkir antar kurir sebelum mengirim (s
 - **R3** — `price = tarif_per_kg[kurir][layanan][zona] * billable_weight_kg`.
 - **R4** — `options` diurutkan: `price` naik, lalu `courier` alfabetis, lalu `service` alfabetis.
 - **R5** — Semua layanan di tabel tarif selalu tersedia untuk semua zona.
+- **R6** — Parameter yang tidak dikirim **atau berisi string kosong** dianggap tidak diisi (berlaku juga untuk `length`/`width`/`height`).
+- **R7** — `weight`, `length`, `width`, `height` diparse **ketat**: nilai mentah (tanpa trim) harus cocok `^[0-9]+$`, lalu dicek rentangnya. Jadi `1_000`, `+5`, `-5`, `1.5`, ` 5`, dan `abc` semuanya tidak valid. (Kode kota tetap di-trim, lihat R1.)
+- **R8** — Urutan validasi; error pertama yang kena dikembalikan: (1) `origin`/`destination`/`weight` tidak diisi → (2) kota asal tidak dikenal → (3) kota tujuan tidak dikenal → (4) `weight` tidak valid → (5) dimensi terisi sebagian → (6) dimensi tidak valid.
 
 ## UI
 - Tab **"Cek Ongkir"**: dropdown asal & tujuan (dari `/api/ongkir/cities`), input berat (gram), dimensi opsional (bisa dibuka/tutup).

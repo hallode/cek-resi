@@ -10,7 +10,7 @@ Repo ini **spec-driven**: perilaku sistem didefinisikan dulu di `specs/`, baru d
 | [001](001-tracking-provider/spec.md) | Tracking + provider adapter | `tracking-go` | Go | Draft (API sudah ada) | 000 |
 | [002](002-courier-detection/spec.md) | Deteksi kurir otomatis | `detect-rust` | Rust | Draft | 000, 001 |
 | [003](003-bulk-tracking/spec.md) | Cek banyak resi + permalink | `gateway-ts` | TypeScript | Draft | 001, 002 |
-| [004](004-ongkir/spec.md) | Cek ongkir | `ongkir-py` | Python | Draft | 000 |
+| [004](004-ongkir/spec.md) | Cek ongkir | `ongkir-py` | Python | Implemented | 000 |
 
 Urutan kerja yang disarankan: 000 → 001 → 002 → 003. Spec 004 independen dan bisa paralel setelah 000.
 
