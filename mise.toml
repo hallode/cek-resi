@@ -5,7 +5,7 @@
 #   mise run lint|test|fmt
 #   mise run <action>:<service>   e.g. mise run test:detect
 #
-# Every service MUST define setup/dev/test/lint/fmt tasks (see AGENTS.md#kontrak-service).
+# Every service MUST define setup/dev/test/lint/fmt tasks (see AGENTS.md "Checklist service baru").
 
 [tools]
 go = "1.27.4"
@@ -45,6 +45,14 @@ depends = ["lint:*"]
 [tasks.fmt]
 description = "Format every service"
 depends = ["fmt:*"]
+
+# Agent roles: .claude/agents.toml is the single place for model/effort per role.
+[tasks."agents:sync"]
+description = "Apply .claude/agents.toml (model/effort) to .claude/agents/*.md"
+run = "python3 scripts/sync-agents.py"
+
+[tasks."lint:agents"] # part of `mise run lint`: fails when agent files drift from the config
+run = "python3 scripts/sync-agents.py --check"
 
 # Needs network (api.osv.dev; only package names + versions are sent). Deliberately NOT part
 # of lint/test so those stay offline-capable. Exceptions: osv-scanner.toml (spec 006, S4).

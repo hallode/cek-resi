@@ -1,0 +1,8 @@
+# Skipped by agent search (Grep/Glob use ripgrep, which honors .ignore).
+# Build tools still read these files; this only keeps them out of search results.
+uv.lock
+package-lock.json
+Cargo.lock
+go.sum
+*.db
+plans/

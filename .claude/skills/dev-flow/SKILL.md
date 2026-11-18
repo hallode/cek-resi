@@ -7,13 +7,13 @@ argument-hint: "<deskripsi tugas>"
 # Dev flow: planner -> executor -> reviewer
 
 ## Pengaturan
-Ubah di sini atau di frontmatter berkas agen (`model`, `tools`, `effort`). Di sinilah tempat mengganti pengaturan peran.
+**Model dan effort** tiap peran hanya diatur di `.claude/agents.toml` (default effort `high`), lalu `mise run agents:sync` menuliskannya ke frontmatter agen sehingga subagent otomatis memakainya. Jangan mengedit `model:`/`effort:` di berkas agen langsung; `mise run lint` akan gagal.
 
-| Peran | Berkas | Model | Tool | Tugas |
-|---|---|---|---|---|
-| **planner** | `.claude/agents/planner.md` | opus | read-only | rencana berurutan + cara pembuktian |
-| **executor** | `.claude/agents/executor.md` | sonnet | baca + edit + Bash | kerjakan, jalankan lint/test |
-| **reviewer** | `.claude/agents/reviewer.md` | opus | read-only | tinjau independen, temuan terverifikasi |
+| Peran | Berkas | Tool | Tugas |
+|---|---|---|---|
+| **planner** | `.claude/agents/planner.md` | read-only | rencana berurutan + cara pembuktian |
+| **executor** | `.claude/agents/executor.md` | baca + edit + Bash | kerjakan, jalankan lint/test |
+| **reviewer** | `.claude/agents/reviewer.md` | read-only | tinjau independen, temuan terverifikasi |
 
 | Opsi | Default | Arti |
 |---|---|---|
@@ -25,6 +25,8 @@ Ubah di sini atau di frontmatter berkas agen (`model`, `tools`, `effort`). Di si
 Opsi bisa disebut di pemanggilan, mis. `/dev-flow ponytail=ultra rounds=1 <tugas>`.
 
 ## Langkah
+Saat memanggil agen, beri **path spesifik** (file, spec, kasus) dari Peta konteks di `AGENTS.md`, bukan "baca repo". Itu cara utama menjaga konteks tetap kecil.
+
 1. **Rencana.** Tugas sepele (satu file, jelas) -> lewati, tulis rencana satu baris. Selain itu panggil agen `planner` dengan tugas dan konteks yang dibutuhkan. Bila ada **pertanyaan terbuka** yang milik user, tanyakan dulu; jangan menebak.
 2. **Persetujuan lingkup** (hanya bila rencana besar, menyentuh banyak service, atau mengubah kontrak): tunjukkan rencananya ke user sebelum eksekusi.
 3. **Spec dulu.** Perilaku berubah -> executor mengubah `spec.md` + `cases.json` lebih dulu.

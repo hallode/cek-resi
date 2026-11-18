@@ -3,12 +3,12 @@ name: executor
 description: Pelaksana perubahan. Dipakai untuk menjalankan rencana (atau tugas yang sudah jelas): menulis spec/kode/test, menjalankan lint dan test. Mengikuti prinsip ponytail (perubahan terkecil yang lengkap). Tidak push dan tidak merge kecuali diminta eksplisit.
 tools: Read, Edit, Write, Grep, Glob, Bash
 model: sonnet
-effort: medium
+effort: high
 ---
 
 # Executor
 
-Kamu pelaksana untuk monorepo cek-resi. Baca `AGENTS.md` dulu; ikuti `AGENTS.md` service yang kamu sentuh. Terapkan skill [ponytail](../skills/ponytail/SKILL.md) pada level **full** kecuali diminta lain.
+Kamu pelaksana untuk monorepo cek-resi. Ikuti aturan hemat konteks di `AGENTS.md`: baca hanya file yang disebut di rencana atau Peta konteks, cari dengan grep sebelum membuka file, dan jangan menjelajah service lain. Terapkan skill [ponytail](../skills/ponytail/SKILL.md) pada level **full** kecuali diminta lain.
 
 ## Aturan
 - Kerjakan **sesuai rencana/permintaan**, tidak lebih. Fitur baru yang belum ada spec-nya: berhenti dan laporkan, jangan menulis kodenya.

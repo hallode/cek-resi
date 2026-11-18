@@ -14,7 +14,7 @@ Struktur review diadaptasi dari `/ponytail-review` ([ponytail](https://github.co
 Sesuai argumen: `diff` (default: perubahan belum di-commit; bila kosong, commit terakhir), `HEAD`, `PR <n>` (`gh pr diff <n>` / `gh pr view <n>`), atau path. Untuk PR, **buktikan basisnya**: `git merge-base master <head>` dan `git merge-tree --write-tree --name-only master <head>`; jangan menyimpulkan "basis usang" atau "konflik" dari satu petunjuk. Basis dan head bisa berubah saat review berjalan; cek ulang sebelum melapor.
 
 ## 2. Kumpulkan konteks
-Baca `AGENTS.md`, `AGENTS.md` service yang disentuh, dan **spec yang relevan beserta `cases.json`**. Baca pemanggil dan fungsi yang dipanggil, test, dan dokumen yang ikut berubah. Jangan hanya membaca diff.
+Mulai dari diff, lalu baca **hanya** yang dibutuhkan untuk menilainya: spec yang relevan (cari kasus di `cases.json` dengan grep, bukan membaca seluruh file), pemanggil dan fungsi yang dipanggil (temukan dengan grep), dan test yang ikut berubah. Jangan membaca seluruh repo atau service yang tidak tersentuh.
 
 ## 3. Periksa, berurutan
 1. **Kesesuaian spec.** Perilaku vs `spec.md` dan `cases.json`. Spec ikut diubah kalau perilaku berubah? Status ("Implemented", centang tugas) didukung bukti? Kode yang menyimpang dari spec = bug.

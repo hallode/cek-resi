@@ -1,0 +1,18 @@
+# Model dan effort tiap peran agen: satu-satunya tempat untuk mengubahnya.
+# Setelah mengubah: `mise run agents:sync` (menulis ke .claude/agents/<peran>.md).
+# `mise run lint` gagal kalau berkas agen tidak sesuai dengan config ini.
+#
+# model : opus | sonnet | haiku | fable | inherit | ID model lengkap (mis. claude-opus-5-5)
+# effort: low | medium | high | xhigh | max
+
+[defaults]
+effort = "high"
+
+[planner]
+model = "opus"
+
+[executor]
+model = "sonnet"
+
+[reviewer]
+model = "opus"

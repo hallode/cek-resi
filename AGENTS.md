@@ -1,71 +1,63 @@
 # AGENTS.md
 
-Panduan untuk coding agent (dan manusia) di monorepo ini.
+Aplikasi cek resi multi-kurir (data **dummy**; jangan memanggil API kurir asli atau layanan eksternal tanpa diminta). Monorepo polyglot, satu service per bahasa, spec-driven.
 
-## Ringkasan
+## Hemat konteks: baca seperlunya
+1. **Mulai dari Peta konteks di bawah**, baca hanya baris yang cocok dengan tugas. Jangan me-list atau membaca seluruh repo/folder.
+2. **Cari dulu, baru baca.** Grep nama fungsi/route/kasus yang spesifik; baca file yang ketemu. File panjang (>300 baris) dibaca per bagian.
+3. **Lintas service lewat kontrak, bukan kode.** Untuk service lain cukup spec-nya (`specs/`), jangan membaca implementasinya.
+4. **Jangan baca:** lockfile (`uv.lock`, `package-lock.json`, `Cargo.lock`, `go.sum`), `*.db`, folder build (`node_modules/`, `target/`, `.venv/`), arsip `plans/`, dan output test penuh (pakai `tail`/`grep`).
+5. Aturan detail tiap folder ada di `AGENTS.md` folder itu dan dimuat saat folder itu disentuh, jadi tidak perlu dibuka di awal.
+6. Berhenti membaca begitu cukup untuk bertindak. Subagent diberi path spesifik, bukan "jelajahi repo".
 
-Aplikasi web cek resi paket multi-kurir (referensi UI: https://cekresi.com/top/), dibangun sebagai monorepo polyglot: **satu service per bahasa**. **Semua data dummy** — jangan memanggil API kurir asli, scraping, atau layanan eksternal kecuali diminta eksplisit.
+## Peta konteks
+| Tugas | Baca (urut, hanya ini) |
+|---|---|
+| Perilaku API berubah | `specs/README.md` (cari nomor spec) → spec itu → `services/<svc>/AGENTS.md` → file yang ditunjuk |
+| Data resi/kurir dummy, endpoint tracking | `services/tracking-go/AGENTS.md` (bagian Resep) |
+| Pola deteksi kurir | `services/detect-rust/src/patterns.rs` + spec 002 R4 |
+| Tarif/kota ongkir | `services/ongkir-py/app/data.py`, `pricing.py` + spec 004 |
+| Route publik / proxy / bulk | `services/gateway-ts/AGENTS.md` → `src/app.ts` (`ROUTES`) + spec 000 A1–A6 |
+| UI / frontend | `web/AGENTS.md` → `web/js/<tab>.js` terkait → bagian spec 005 yang relevan |
+| Toolchain / task | `mise.toml` |
+| Model/effort agen | `.claude/agents.toml` lalu `mise run agents:sync` |
+| Tambah service baru | spec 000 + checklist di bawah |
+| Review | skill `review-code`: diff + spec terkait + pemanggil (via grep) |
 
 ## Service
+| Service | Bahasa | Port | Tugas |
+|---|---|---|---|
+| `services/gateway-ts` | TypeScript (Node 24) | 8080 | serve `web/`, proxy `/api/*`, bulk tracking |
+| `services/tracking-go` | Go | 8081 | data resi & kurir (SQLite dummy) |
+| `services/detect-rust` | Rust (axum) | 8082 | deteksi kurir dari nomor resi |
+| `services/ongkir-py` | Python (FastAPI) | 8083 | kalkulasi ongkir |
 
-| Service | Bahasa | Port | Tugas | Status |
-|---|---|---|---|---|
-| [`gateway-ts`](services/gateway-ts/AGENTS.md) | TypeScript (Node 24) | 8080 | serve `web/`, proxy `/api/*` ke service lain | tracking, ongkir & deteksi (002) jalan; bulk (003) termasuk tab Banyak Resi |
-| [`tracking-go`](services/tracking-go/AGENTS.md) | Go | 8081 | data resi & kurir (SQLite dummy) | jalan (spec 001 belum penuh) |
-| [`detect-rust`](services/detect-rust/AGENTS.md) | Rust (axum) | 8082 | deteksi kurir dari nomor resi | jalan (spec 002) |
-| [`ongkir-py`](services/ongkir-py/AGENTS.md) | Python (FastAPI) | 8083 | kalkulasi ongkir | jalan (spec 004 terimplementasi) |
-
-`web/` = frontend statis (HTML/CSS/vanilla JS, tanpa build step), diserve gateway. Browser hanya bicara ke gateway.
+Browser hanya bicara ke gateway. Service bicara lewat HTTP JSON sesuai spec: tanpa import kode lintas service, tanpa DB bersama. Konvensi HTTP/JSON (K1–K5), kurir kanonik, dan aturan A1–A6 ada di spec 000.
 
 ## Spec-driven
+- Tanpa spec tidak ada fitur. Ubah `spec.md` + `cases.json` dulu, baru kode.
+- Test membaca `cases.json` lewat harness `spectest` (daftar `SPEC_FILES` di test service); jangan menyalin kasus ke kode test.
+- Kode berbeda dari spec = bug; kalau tidak jelas mana yang benar, tanya user. Status di `specs/README.md` dan header spec harus jujur.
 
-Perilaku didefinisikan di [`specs/`](specs/README.md) sebelum diimplementasikan.
-
-- **Jangan menulis fitur baru tanpa spec.** Ubah `spec.md` + `cases.json` dulu, baru kode.
-- Test wajib membaca `cases.json` (lewat harness `spectest` tiap bahasa), jangan menyalin kasusnya ke kode test.
-- Kode berbeda dari spec = bug. Kalau tidak jelas mana yang benar, tanya user.
-- Setelah selesai, update Status di [specs/README.md](specs/README.md) dan header spec.
-
-## Perintah (semua lewat [mise](https://mise.jdx.dev))
-
+## Perintah (mise)
 ```sh
-mise install                 # toolchain ter-pin: Go, Node, Rust, Python, uv
-mise run setup               # install dependency semua service
-mise run dev                 # jalankan semua → http://localhost:8080
-mise run test | lint | fmt   # semua service
-mise run test:detect         # satu service: <aksi>:<tracking|gateway|detect|ongkir>
-mise run scan                # cek kerentanan dependency ke osv.dev (butuh jaringan; spec 006)
-mise run e2e                 # specs/*/cases.e2e.json ke gateway (butuh `mise run dev`)
+mise install && mise run setup   # toolchain ter-pin + dependency
+mise run dev                     # semua service → http://localhost:8080
+mise run test | lint | fmt       # semua; satu service: test:<tracking|gateway|detect|ongkir>
+mise run e2e                     # specs/*/cases.e2e.json ke gateway (butuh `mise run dev`)
+mise run scan                    # osv.dev (kirim daftar paket ke luar; hanya bila diminta)
+mise run agents:sync             # terapkan .claude/agents.toml ke definisi agen
 ```
 
-Versi toolchain ada di [`mise.toml`](mise.toml) — ubah di sana, bukan di tiap service.
-
-## Aturan lintas-service
-
-- Service hanya bicara lewat HTTP JSON sesuai spec. Tidak ada import kode lintas service, tidak ada DB bersama.
-- Gateway meneruskan path publik **apa adanya** ke service pemilik (`ROUTES` di `services/gateway-ts/src/app.ts`).
-- Konvensi HTTP/JSON, kurir kanonik, dan aturan A1–A6 ada di [spec 000](specs/000-architecture/spec.md).
-- Dependency minimal; prefer stdlib. Jangan tambah dependency tanpa alasan kuat.
-
-## Kontrak service (checklist service baru)
-
-1. `services/<nama>/AGENTS.md` sendiri.
-2. `GET /health` → `{"status":"ok","service":"<nama>"}`; port dari env `PORT`.
-3. Task `setup|dev|test|lint|fmt:<alias>` di `mise.toml` + masuk daftar service di atas.
-4. Harness `matchPartial` + loader `cases.json` (contoh: `internal/spectest`, `src/spectest.ts`, `tests/spectest/`, `tests/spectest.py`), divalidasi oleh [`specs/matcher-cases.json`](specs/matcher-cases.json).
-5. Spec dimuat lewat daftar eksplisit `SPEC_FILES` di test service; tambahkan entri saat spec-nya diimplementasikan.
-
 ## Cara kerja agen
+Detail di `.claude/skills/` (diadaptasi dari [ponytail](https://github.com/dietrichgebert/ponytail), MIT).
+- **Perubahan terkecil yang lengkap** (skill `ponytail`): reuse repo → stdlib → dependency terpasang → baru kode baru. Pemanggil, test, `cases.json`, dan status spec ikut diselesaikan.
+- **Jangan dipotong:** validasi batas kepercayaan, error `{"error": ...}`, keamanan (nomor resi tidak masuk log, `textContent` bukan `innerHTML`), aksesibilitas.
+- **Tiga peran** (skill `dev-flow`): planner → executor → reviewer; model/effort di `.claude/agents.toml`. Review (skill `review-code`) read-only dengan temuan terverifikasi.
+- Jangan melaporkan hasil yang tidak kamu lihat; tutup balasan dengan apa yang dilewati dan risikonya. Push, komentar/merge PR, dan `mise run scan` hanya atas izin jelas.
 
-Berlaku untuk semua agen. Versi lengkap ada di `.claude/skills/` (diadaptasi dari [ponytail](https://github.com/dietrichgebert/ponytail), MIT).
-
-- **Perubahan terkecil yang lengkap** (skill `ponytail`): pakai yang sudah ada di repo → stdlib/platform → dependency terpasang → baru tulis kode; tanpa abstraksi atau fitur yang tidak diminta. Malas pada solusi, bukan pada perubahan: pemanggil, test, `cases.json`, dan status spec ikut diselesaikan.
-- **Jangan dipotong:** validasi di batas kepercayaan, format error `{"error": ...}`, keamanan (tidak mencatat nomor resi di log, `textContent` bukan `innerHTML`), aksesibilitas, dan status spec yang jujur.
-- **Tutup tiap balasan** dengan satu atau dua baris: apa yang dilewati atau tidak diperiksa, dan risikonya. Jangan melaporkan hasil yang tidak kamu lihat sendiri (lint/test dijalankan dan dibaca, bukan diasumsikan).
-- **Review** (skill `review-code`): read-only; temuan diverifikasi dan diberi label CONFIRMED/PLAUSIBLE; format Must fix / Should fix / Nice to have dengan `file:baris`.
-- **Tiga peran** (skill `dev-flow`, agen di `.claude/agents/`): planner (read-only) → executor → reviewer (independen, hanya diberi diff dan spec). Pengaturan model/tool/level ada di tabel `dev-flow` dan frontmatter tiap agen.
-- `mise run scan` (kirim daftar paket ke osv.dev) dan aksi keluar (komentar/merge PR, push) hanya atas permintaan atau izin yang jelas.
+## Checklist service baru
+`services/<nama>/AGENTS.md` + `CLAUDE.md` (isi `@AGENTS.md`) · `GET /health` dan env `PORT` · task `setup|dev|test|lint|fmt:<alias>` di `mise.toml` · harness spectest divalidasi `specs/matcher-cases.json` · baris di tabel Service dan Peta konteks.
 
 ## Definition of done
-
-`mise run lint` dan `mise run test` hijau; kontrak/spec masih akurat; kalau UI berubah, cek manual lewat `mise run dev`.
+`mise run lint` dan `mise run test` hijau; spec dan status akurat; UI berubah → cek manual lewat `mise run dev`.
