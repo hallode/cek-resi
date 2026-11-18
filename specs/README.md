@@ -12,6 +12,7 @@ Repo ini **spec-driven**: perilaku sistem didefinisikan dulu di `specs/`, baru d
 | [003](003-bulk-tracking/spec.md) | Cek banyak resi + permalink | `gateway-ts` | TypeScript | Draft | 001, 002 |
 | [004](004-ongkir/spec.md) | Cek ongkir | `ongkir-py` | Python | Draft | 000 |
 | [005](005-frontend-ux/spec.md) | Frontend UI/UX (desain, komponen, aksesibilitas) | `web/` | HTML/CSS/JS | Implemented sebagian (belum diverifikasi di browser) | 000, 001 |
+| [006](006-security-scan/spec.md) | Pemindaian keamanan dependency (OSV) | repo | osv-scanner | Draft (scan awal belum dijalankan) | 000 |
 
 Urutan kerja yang disarankan: 000 → 001 → 002 → 003. Spec 004 independen dan bisa paralel setelah 000.
 

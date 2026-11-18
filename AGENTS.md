@@ -34,6 +34,7 @@ mise run setup               # install dependency semua service
 mise run dev                 # jalankan semua → http://localhost:8080
 mise run test | lint | fmt   # semua service
 mise run test:detect         # satu service: <aksi>:<tracking|gateway|detect|ongkir>
+mise run scan                # cek kerentanan dependency ke osv.dev (butuh jaringan; spec 006)
 ```
 
 Versi toolchain ada di [`mise.toml`](mise.toml) — ubah di sana, bukan di tiap service.

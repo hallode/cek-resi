@@ -19,6 +19,7 @@ mise run setup      # dependency semua service
 mise run dev        # buka http://localhost:8080
 mise run test       # test semua service
 mise run lint
+mise run scan       # cek kerentanan dependency ke osv.dev (butuh jaringan)
 ```
 
 Satu service saja: `mise run test:detect`, `mise run dev:tracking`, dst (`tracking|gateway|detect|ongkir`).

@@ -13,6 +13,7 @@ node = "24.22.3"
 rust = { version = "1.100.0", components = "clippy,rustfmt", profile = "minimal" }
 python = "3.12.16"
 uv = "0.13.8"
+osv-scanner = "2.7.1" # dependency vulnerability scan against osv.dev (spec 006)
 
 [settings]
 jobs = 8 # >= number of services, so `mise run dev` can keep them all running
@@ -44,6 +45,12 @@ depends = ["lint:*"]
 [tasks.fmt]
 description = "Format every service"
 depends = ["fmt:*"]
+
+# Needs network (api.osv.dev; only package names + versions are sent). Deliberately NOT part
+# of lint/test so those stay offline-capable. Exceptions: osv-scanner.toml (spec 006, S4).
+[tasks.scan]
+description = "Scan all lockfiles for known vulnerabilities (osv.dev)"
+run = "osv-scanner scan source --recursive --config osv-scanner.toml services/"
 
 # ------------------------------------------------------- tracking-go (Go)
 

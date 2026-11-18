@@ -1,0 +1,6 @@
+# osv-scanner configuration (spec 006). Exceptions only here, each with a reason and an expiry.
+#
+# [[IgnoredVulns]]
+# id = "GHSA-xxxx-xxxx-xxxx"
+# ignoreUntil = 2027-02-16   # at most 90 days ahead (S4)
+# reason = "why this is safe, or why it cannot be upgraded yet"
