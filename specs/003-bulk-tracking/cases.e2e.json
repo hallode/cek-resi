@@ -1,0 +1,71 @@
+{
+  "spec": "003-bulk-tracking",
+  "level": "e2e",
+  "target": "gateway-ts (+ tracking-go, detect-rust)",
+  "cases": [
+    {
+      "name": "mixed explicit, detected, and failing items keep order",
+      "request": {
+        "method": "POST",
+        "path": "/api/track/bulk",
+        "body": {
+          "items": [
+            { "awb": "004000123456", "courier": "sicepat" },
+            { "awb": "jp1234567890" },
+            { "awb": "ZZZ" },
+            { "awb": "004000999999", "courier": "sicepat" },
+            { "awb": "CGK1A00012345", "courier": "foo" }
+          ]
+        }
+      },
+      "expect": {
+        "status": 200,
+        "body": {
+          "results": [
+            {
+              "awb": "004000123456", "courier": "sicepat", "detected": false, "ok": true, "status": "DELIVERED",
+              "last_event": { "time": "2026-11-11T13:47:00+07:00", "location": "Bandung" }
+            },
+            { "awb": "JP1234567890", "courier": "jnt", "detected": true, "ok": true, "status": "DELIVERED" },
+            { "awb": "ZZZ", "courier": null, "detected": false, "ok": false, "error": "kurir tidak terdeteksi, pilih kurir secara manual" },
+            { "awb": "004000999999", "courier": "sicepat", "detected": false, "ok": false, "error": "resi tidak ditemukan" },
+            { "awb": "CGK1A00012345", "courier": "foo", "detected": false, "ok": false, "error": "kurir tidak dikenal" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "dedup after normalization",
+      "request": {
+        "method": "POST",
+        "path": "/api/track/bulk",
+        "body": { "items": [{ "awb": "jp1234567890" }, { "awb": " JP1234567890 " }, { "awb": "JP1234567890", "courier": "jnt" }] }
+      },
+      "expect": {
+        "status": 200,
+        "body": {
+          "results": [
+            { "awb": "JP1234567890", "courier": "jnt", "detected": true, "ok": true },
+            { "awb": "JP1234567890", "courier": "jnt", "detected": false, "ok": true }
+          ]
+        }
+      }
+    },
+    {
+      "name": "ten unique items after dedup is allowed",
+      "request": {
+        "method": "POST",
+        "path": "/api/track/bulk",
+        "body": {
+          "items": [
+            { "awb": "004000123456" }, { "awb": "004000654321" }, { "awb": "CGK1A00012345" },
+            { "awb": "JP1234567890" }, { "awb": "SPXID041234567890" }, { "awb": "10001234567890" },
+            { "awb": "11LP1234567890" }, { "awb": "P2211000123456" }, { "awb": "ZZZ" }, { "awb": "YYY" },
+            { "awb": "zzz" }
+          ]
+        }
+      },
+      "expect": { "status": 200, "body": { "results": { "$length": 10 } } }
+    }
+  ]
+}

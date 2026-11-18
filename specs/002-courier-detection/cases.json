@@ -1,0 +1,94 @@
+{
+  "spec": "002-courier-detection",
+  "level": "service",
+  "target": "detect-rust",
+  "cases": [
+    {
+      "name": "sicepat high with tiki low fallback",
+      "request": { "method": "GET", "path": "/api/detect?awb=004000123456" },
+      "expect": {
+        "status": 200,
+        "body": {
+          "awb": "004000123456",
+          "candidates": [
+            { "code": "sicepat", "confidence": "high" },
+            { "code": "tiki", "confidence": "low" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "tiki only",
+      "request": { "method": "GET", "path": "/api/detect?awb=660000000001" },
+      "expect": { "status": 200, "body": { "candidates": [{ "code": "tiki", "confidence": "low" }] } }
+    },
+    {
+      "name": "jne",
+      "request": { "method": "GET", "path": "/api/detect?awb=CGK1A00012345" },
+      "expect": { "status": 200, "body": { "candidates": [{ "code": "jne", "confidence": "high" }] } }
+    },
+    {
+      "name": "jnt lowercase is normalized",
+      "request": { "method": "GET", "path": "/api/detect?awb=%20jp1234567890%20" },
+      "expect": {
+        "status": 200,
+        "body": { "awb": "JP1234567890", "candidates": [{ "code": "jnt", "confidence": "high" }] }
+      }
+    },
+    {
+      "name": "jntcargo",
+      "request": { "method": "GET", "path": "/api/detect?awb=JC1234567890" },
+      "expect": { "status": 200, "body": { "candidates": [{ "code": "jntcargo" }] } }
+    },
+    {
+      "name": "spx",
+      "request": { "method": "GET", "path": "/api/detect?awb=SPXID041234567890" },
+      "expect": { "status": 200, "body": { "candidates": [{ "code": "spx" }] } }
+    },
+    {
+      "name": "lion",
+      "request": { "method": "GET", "path": "/api/detect?awb=11LP1234567890" },
+      "expect": { "status": 200, "body": { "candidates": [{ "code": "lion" }] } }
+    },
+    {
+      "name": "pos",
+      "request": { "method": "GET", "path": "/api/detect?awb=P2211000123456" },
+      "expect": { "status": 200, "body": { "candidates": [{ "code": "pos" }] } }
+    },
+    {
+      "name": "anteraja (14 digits, not 12)",
+      "request": { "method": "GET", "path": "/api/detect?awb=10001234567890" },
+      "expect": { "status": 200, "body": { "candidates": [{ "code": "anteraja" }] } }
+    },
+    {
+      "name": "indah",
+      "request": { "method": "GET", "path": "/api/detect?awb=IND123456789" },
+      "expect": { "status": 200, "body": { "candidates": [{ "code": "indah" }] } }
+    },
+    {
+      "name": "pattern must match whole string",
+      "request": { "method": "GET", "path": "/api/detect?awb=JP12345678901" },
+      "expect": { "status": 200, "body": { "candidates": [] } }
+    },
+    {
+      "name": "no match",
+      "request": { "method": "GET", "path": "/api/detect?awb=ABC" },
+      "expect": { "status": 200, "body": { "awb": "ABC", "candidates": [] } }
+    },
+    {
+      "name": "missing awb",
+      "request": { "method": "GET", "path": "/api/detect" },
+      "expect": { "status": 400, "body": { "error": "parameter awb wajib diisi" } }
+    },
+    {
+      "name": "blank awb",
+      "request": { "method": "GET", "path": "/api/detect?awb=%20%20" },
+      "expect": { "status": 400, "body": { "error": "parameter awb wajib diisi" } }
+    },
+    {
+      "name": "awb too long",
+      "request": { "method": "GET", "path": "/api/detect?awb=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" },
+      "expect": { "status": 400, "body": { "error": "awb terlalu panjang" } }
+    }
+  ]
+}

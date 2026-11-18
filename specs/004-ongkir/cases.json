@@ -1,0 +1,514 @@
+{
+  "spec": "004-ongkir",
+  "level": "service",
+  "target": "ongkir-py",
+  "cases": [
+    {
+      "name": "cities",
+      "request": {
+        "method": "GET",
+        "path": "/api/ongkir/cities"
+      },
+      "expect": {
+        "status": 200,
+        "body": [
+          {
+            "code": "JKT",
+            "name": "Jakarta",
+            "island": "Jawa"
+          },
+          {
+            "code": "BDG",
+            "name": "Bandung",
+            "island": "Jawa"
+          },
+          {
+            "code": "SMG",
+            "name": "Semarang",
+            "island": "Jawa"
+          },
+          {
+            "code": "YOG",
+            "name": "Yogyakarta",
+            "island": "Jawa"
+          },
+          {
+            "code": "SBY",
+            "name": "Surabaya",
+            "island": "Jawa"
+          },
+          {
+            "code": "MLG",
+            "name": "Malang",
+            "island": "Jawa"
+          },
+          {
+            "code": "MDN",
+            "name": "Medan",
+            "island": "Sumatera"
+          },
+          {
+            "code": "PLB",
+            "name": "Palembang",
+            "island": "Sumatera"
+          },
+          {
+            "code": "DPS",
+            "name": "Denpasar",
+            "island": "Bali"
+          },
+          {
+            "code": "BPN",
+            "name": "Balikpapan",
+            "island": "Kalimantan"
+          },
+          {
+            "code": "MKS",
+            "name": "Makassar",
+            "island": "Sulawesi"
+          }
+        ]
+      }
+    },
+    {
+      "name": "satu pulau 1500 g rounds up to 2 kg",
+      "request": {
+        "method": "GET",
+        "path": "/api/ongkir?origin=JKT&destination=BDG&weight=1500"
+      },
+      "expect": {
+        "status": 200,
+        "body": {
+          "origin": {
+            "code": "JKT",
+            "name": "Jakarta"
+          },
+          "destination": {
+            "code": "BDG",
+            "name": "Bandung"
+          },
+          "zone": "SATU_PULAU",
+          "billable_weight_kg": 2,
+          "options": [
+            {
+              "courier": "pos",
+              "service": "KILAT",
+              "price": 22000,
+              "etd_days": {
+                "min": 3,
+                "max": 4
+              }
+            },
+            {
+              "courier": "anteraja",
+              "service": "REG",
+              "price": 23000,
+              "etd_days": {
+                "min": 2,
+                "max": 3
+              }
+            },
+            {
+              "courier": "sicepat",
+              "service": "REG",
+              "price": 24000,
+              "etd_days": {
+                "min": 1,
+                "max": 2
+              }
+            },
+            {
+              "courier": "jnt",
+              "service": "EZ",
+              "price": 25000,
+              "etd_days": {
+                "min": 2,
+                "max": 3
+              }
+            },
+            {
+              "courier": "jne",
+              "service": "REG",
+              "price": 26000,
+              "etd_days": {
+                "min": 2,
+                "max": 3
+              }
+            },
+            {
+              "courier": "sicepat",
+              "service": "BEST",
+              "price": 36000,
+              "etd_days": {
+                "min": 1,
+                "max": 1
+              }
+            },
+            {
+              "courier": "jne",
+              "service": "YES",
+              "price": 40000,
+              "etd_days": {
+                "min": 1,
+                "max": 1
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "dalam kota 300 g is minimum 1 kg",
+      "request": {
+        "method": "GET",
+        "path": "/api/ongkir?origin=JKT&destination=JKT&weight=300"
+      },
+      "expect": {
+        "status": 200,
+        "body": {
+          "origin": {
+            "code": "JKT",
+            "name": "Jakarta"
+          },
+          "destination": {
+            "code": "JKT",
+            "name": "Jakarta"
+          },
+          "zone": "DALAM_KOTA",
+          "billable_weight_kg": 1,
+          "options": [
+            {
+              "courier": "pos",
+              "service": "KILAT",
+              "price": 7000,
+              "etd_days": {
+                "min": 2,
+                "max": 3
+              }
+            },
+            {
+              "courier": "anteraja",
+              "service": "REG",
+              "price": 7500,
+              "etd_days": {
+                "min": 1,
+                "max": 2
+              }
+            },
+            {
+              "courier": "sicepat",
+              "service": "REG",
+              "price": 8000,
+              "etd_days": {
+                "min": 1,
+                "max": 1
+              }
+            },
+            {
+              "courier": "jnt",
+              "service": "EZ",
+              "price": 8500,
+              "etd_days": {
+                "min": 1,
+                "max": 2
+              }
+            },
+            {
+              "courier": "jne",
+              "service": "REG",
+              "price": 9000,
+              "etd_days": {
+                "min": 1,
+                "max": 2
+              }
+            },
+            {
+              "courier": "sicepat",
+              "service": "BEST",
+              "price": 12000,
+              "etd_days": {
+                "min": 1,
+                "max": 1
+              }
+            },
+            {
+              "courier": "jne",
+              "service": "YES",
+              "price": 15000,
+              "etd_days": {
+                "min": 1,
+                "max": 1
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "antar pulau volumetric wins",
+      "request": {
+        "method": "GET",
+        "path": "/api/ongkir?origin=SBY&destination=MDN&weight=1000&length=30&width=20&height=20"
+      },
+      "expect": {
+        "status": 200,
+        "body": {
+          "origin": {
+            "code": "SBY",
+            "name": "Surabaya"
+          },
+          "destination": {
+            "code": "MDN",
+            "name": "Medan"
+          },
+          "zone": "ANTAR_PULAU",
+          "billable_weight_kg": 2,
+          "options": [
+            {
+              "courier": "pos",
+              "service": "KILAT",
+              "price": 44000,
+              "etd_days": {
+                "min": 5,
+                "max": 7
+              }
+            },
+            {
+              "courier": "anteraja",
+              "service": "REG",
+              "price": 48000,
+              "etd_days": {
+                "min": 4,
+                "max": 6
+              }
+            },
+            {
+              "courier": "sicepat",
+              "service": "REG",
+              "price": 50000,
+              "etd_days": {
+                "min": 3,
+                "max": 5
+              }
+            },
+            {
+              "courier": "jnt",
+              "service": "EZ",
+              "price": 52000,
+              "etd_days": {
+                "min": 3,
+                "max": 6
+              }
+            },
+            {
+              "courier": "jne",
+              "service": "REG",
+              "price": 54000,
+              "etd_days": {
+                "min": 3,
+                "max": 5
+              }
+            },
+            {
+              "courier": "sicepat",
+              "service": "BEST",
+              "price": 70000,
+              "etd_days": {
+                "min": 1,
+                "max": 2
+              }
+            },
+            {
+              "courier": "jne",
+              "service": "YES",
+              "price": 80000,
+              "etd_days": {
+                "min": 1,
+                "max": 2
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "lowercase city codes are normalized",
+      "request": {
+        "method": "GET",
+        "path": "/api/ongkir?origin=%20jkt%20&destination=dps&weight=1000"
+      },
+      "expect": {
+        "status": 200,
+        "body": {
+          "origin": {
+            "code": "JKT"
+          },
+          "destination": {
+            "code": "DPS"
+          },
+          "zone": "ANTAR_PULAU",
+          "billable_weight_kg": 1
+        }
+      }
+    },
+    {
+      "name": "1001 g bills 2 kg",
+      "request": {
+        "method": "GET",
+        "path": "/api/ongkir?origin=JKT&destination=BDG&weight=1001"
+      },
+      "expect": {
+        "status": 200,
+        "body": {
+          "billable_weight_kg": 2
+        }
+      }
+    },
+    {
+      "name": "1000 g bills 1 kg",
+      "request": {
+        "method": "GET",
+        "path": "/api/ongkir?origin=JKT&destination=BDG&weight=1000"
+      },
+      "expect": {
+        "status": 200,
+        "body": {
+          "billable_weight_kg": 1
+        }
+      }
+    },
+    {
+      "name": "actual weight beats smaller volumetric",
+      "request": {
+        "method": "GET",
+        "path": "/api/ongkir?origin=JKT&destination=BDG&weight=5000&length=10&width=10&height=10"
+      },
+      "expect": {
+        "status": 200,
+        "body": {
+          "billable_weight_kg": 5
+        }
+      }
+    },
+    {
+      "name": "max weight",
+      "request": {
+        "method": "GET",
+        "path": "/api/ongkir?origin=JKT&destination=MKS&weight=50000"
+      },
+      "expect": {
+        "status": 200,
+        "body": {
+          "billable_weight_kg": 50,
+          "options": {
+            "$length": 7
+          }
+        }
+      }
+    },
+    {
+      "name": "missing weight",
+      "request": {
+        "method": "GET",
+        "path": "/api/ongkir?origin=JKT&destination=BDG"
+      },
+      "expect": {
+        "status": 400,
+        "body": {
+          "error": "parameter origin, destination, dan weight wajib diisi"
+        }
+      }
+    },
+    {
+      "name": "unknown origin",
+      "request": {
+        "method": "GET",
+        "path": "/api/ongkir?origin=XXX&destination=BDG&weight=1000"
+      },
+      "expect": {
+        "status": 400,
+        "body": {
+          "error": "kota asal tidak dikenal"
+        }
+      }
+    },
+    {
+      "name": "unknown destination",
+      "request": {
+        "method": "GET",
+        "path": "/api/ongkir?origin=JKT&destination=XXX&weight=1000"
+      },
+      "expect": {
+        "status": 400,
+        "body": {
+          "error": "kota tujuan tidak dikenal"
+        }
+      }
+    },
+    {
+      "name": "weight zero",
+      "request": {
+        "method": "GET",
+        "path": "/api/ongkir?origin=JKT&destination=BDG&weight=0"
+      },
+      "expect": {
+        "status": 400,
+        "body": {
+          "error": "weight harus bilangan bulat 1-50000 gram"
+        }
+      }
+    },
+    {
+      "name": "weight too heavy",
+      "request": {
+        "method": "GET",
+        "path": "/api/ongkir?origin=JKT&destination=BDG&weight=50001"
+      },
+      "expect": {
+        "status": 400,
+        "body": {
+          "error": "weight harus bilangan bulat 1-50000 gram"
+        }
+      }
+    },
+    {
+      "name": "weight not integer",
+      "request": {
+        "method": "GET",
+        "path": "/api/ongkir?origin=JKT&destination=BDG&weight=1.5"
+      },
+      "expect": {
+        "status": 400,
+        "body": {
+          "error": "weight harus bilangan bulat 1-50000 gram"
+        }
+      }
+    },
+    {
+      "name": "partial dimensions",
+      "request": {
+        "method": "GET",
+        "path": "/api/ongkir?origin=JKT&destination=BDG&weight=1000&length=10&width=10"
+      },
+      "expect": {
+        "status": 400,
+        "body": {
+          "error": "length, width, height harus diisi semua atau tidak sama sekali"
+        }
+      }
+    },
+    {
+      "name": "dimension out of range",
+      "request": {
+        "method": "GET",
+        "path": "/api/ongkir?origin=JKT&destination=BDG&weight=1000&length=201&width=10&height=10"
+      },
+      "expect": {
+        "status": 400,
+        "body": {
+          "error": "dimensi harus bilangan bulat 1-200 cm"
+        }
+      }
+    }
+  ]
+}

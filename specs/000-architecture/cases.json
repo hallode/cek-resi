@@ -1,0 +1,31 @@
+{
+  "spec": "000-architecture",
+  "level": "service",
+  "target": "each service (run against its own BASE_URL)",
+  "cases": [
+    {
+      "name": "gateway health",
+      "target": "gateway-ts",
+      "request": { "method": "GET", "path": "/health" },
+      "expect": { "status": 200, "body": { "status": "ok", "service": "gateway-ts" } }
+    },
+    {
+      "name": "tracking health",
+      "target": "tracking-go",
+      "request": { "method": "GET", "path": "/health" },
+      "expect": { "status": 200, "body": { "status": "ok", "service": "tracking-go" } }
+    },
+    {
+      "name": "detect health",
+      "target": "detect-rust",
+      "request": { "method": "GET", "path": "/health" },
+      "expect": { "status": 200, "body": { "status": "ok", "service": "detect-rust" } }
+    },
+    {
+      "name": "ongkir health",
+      "target": "ongkir-py",
+      "request": { "method": "GET", "path": "/health" },
+      "expect": { "status": 200, "body": { "status": "ok", "service": "ongkir-py" } }
+    }
+  ]
+}

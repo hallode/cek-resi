@@ -8,6 +8,17 @@ Aplikasi web cek resi paket multi-kurir (referensi UI: https://cekresi.com/top/)
 
 **Semua data adalah dummy** dari SQLite lokal. Jangan menambahkan pemanggilan ke API kurir asli, scraping, atau layanan eksternal lain kecuali diminta secara eksplisit.
 
+## Spec-driven
+
+Perilaku sistem didefinisikan di [`specs/`](specs/README.md) sebelum diimplementasikan. Arah pengembangan: monorepo dengan satu service per bahasa (Go, Rust, TypeScript, Python) — lihat [000](specs/000-architecture/spec.md).
+
+- **Jangan menulis fitur baru tanpa spec.** Ubah `spec.md` + `cases.json` dulu, baru kode.
+- Test wajib membaca `cases.json` dari spec terkait (jangan menyalin kasusnya ke kode test).
+- Kalau kode dan spec berbeda, anggap bug. Tanyakan ke user mana yang benar kalau tidak jelas.
+- Setelah selesai, update kolom Status di [specs/README.md](specs/README.md) dan header spec.
+
+Bagian di bawah ini menjelaskan kondisi repo **saat ini** (satu aplikasi Go). Saat spec 000 diimplementasikan, isinya dipindah ke `services/tracking-go/AGENTS.md`.
+
 ## Stack
 
 - **Backend**: Go (stdlib `net/http`, pattern routing `GET /path`), satu dependency: `modernc.org/sqlite` (pure Go, tanpa cgo).

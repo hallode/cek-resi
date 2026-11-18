@@ -1,0 +1,96 @@
+{
+  "spec": "001-tracking-provider",
+  "level": "service",
+  "target": "tracking-go",
+  "cases": [
+    {
+      "name": "list couriers",
+      "request": { "method": "GET", "path": "/api/couriers" },
+      "expect": {
+        "status": 200,
+        "body": [
+          { "code": "jnt", "name": "J&T Express" },
+          { "code": "jne", "name": "JNE Express" },
+          { "code": "jntcargo", "name": "J&T Cargo" },
+          { "code": "spx", "name": "SPX Express" },
+          { "code": "sicepat", "name": "SiCepat Ekspres" },
+          { "code": "lion", "name": "Lion Parcel" },
+          { "code": "tiki", "name": "TIKI" },
+          { "code": "pos", "name": "Pos Indonesia" },
+          { "code": "indah", "name": "Indah Cargo" },
+          { "code": "anteraja", "name": "Anteraja" }
+        ]
+      }
+    },
+    {
+      "name": "track delivered",
+      "request": { "method": "GET", "path": "/api/track?courier=sicepat&awb=004000123456" },
+      "expect": {
+        "status": 200,
+        "body": {
+          "awb": "004000123456",
+          "courier": { "code": "sicepat", "name": "SiCepat Ekspres" },
+          "status": "DELIVERED",
+          "source": "dummy",
+          "history": { "$length": 6 }
+        }
+      }
+    },
+    {
+      "name": "history newest first",
+      "request": { "method": "GET", "path": "/api/track?courier=jne&awb=CGK1A00012345" },
+      "expect": {
+        "status": 200,
+        "body": {
+          "status": "OUT_FOR_DELIVERY",
+          "history": [
+            { "time": "2026-11-17T08:45:00+07:00" },
+            { "time": "2026-11-17T05:10:00+07:00" },
+            { "time": "2026-11-16T20:30:00+07:00" },
+            { "time": "2026-11-16T11:00:00+07:00" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "normalizes courier and awb",
+      "request": { "method": "GET", "path": "/api/track?courier=%20SiCepat%20&awb=%20jp1234567890%20" },
+      "expect": { "status": 404, "body": { "error": "resi tidak ditemukan" } }
+    },
+    {
+      "name": "normalizes lowercase awb",
+      "request": { "method": "GET", "path": "/api/track?courier=JNT&awb=jp1234567890" },
+      "expect": { "status": 200, "body": { "awb": "JP1234567890", "status": "DELIVERED" } }
+    },
+    {
+      "name": "returned shipment",
+      "request": { "method": "GET", "path": "/api/track?courier=anteraja&awb=10001234567890" },
+      "expect": { "status": 200, "body": { "status": "RETURNED", "history": { "$length": 7 } } }
+    },
+    {
+      "name": "missing awb",
+      "request": { "method": "GET", "path": "/api/track?courier=sicepat" },
+      "expect": { "status": 400, "body": { "error": "parameter courier dan awb wajib diisi" } }
+    },
+    {
+      "name": "blank courier",
+      "request": { "method": "GET", "path": "/api/track?courier=%20&awb=004000123456" },
+      "expect": { "status": 400, "body": { "error": "parameter courier dan awb wajib diisi" } }
+    },
+    {
+      "name": "unknown courier",
+      "request": { "method": "GET", "path": "/api/track?courier=foo&awb=004000123456" },
+      "expect": { "status": 400, "body": { "error": "kurir tidak dikenal" } }
+    },
+    {
+      "name": "awb belongs to other courier",
+      "request": { "method": "GET", "path": "/api/track?courier=jne&awb=004000123456" },
+      "expect": { "status": 404, "body": { "error": "resi tidak ditemukan" } }
+    },
+    {
+      "name": "unknown awb",
+      "request": { "method": "GET", "path": "/api/track?courier=sicepat&awb=004000999999" },
+      "expect": { "status": 404, "body": { "error": "resi tidak ditemukan" } }
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "spec": "003-bulk-tracking",
+  "level": "service",
+  "target": "gateway-ts (no upstream needed: request validation only)",
+  "cases": [
+    {
+      "name": "body without items",
+      "request": { "method": "POST", "path": "/api/track/bulk", "body": { "awb": "004000123456" } },
+      "expect": { "status": 400, "body": { "error": "body harus JSON dengan field items" } }
+    },
+    {
+      "name": "empty items",
+      "request": { "method": "POST", "path": "/api/track/bulk", "body": { "items": [] } },
+      "expect": { "status": 400, "body": { "error": "items wajib diisi" } }
+    },
+    {
+      "name": "item with blank awb",
+      "request": {
+        "method": "POST",
+        "path": "/api/track/bulk",
+        "body": { "items": [{ "awb": "004000123456" }, { "awb": "  ", "courier": "jne" }] }
+      },
+      "expect": { "status": 400, "body": { "error": "setiap item wajib punya awb" } }
+    },
+    {
+      "name": "more than 10 unique items",
+      "request": {
+        "method": "POST",
+        "path": "/api/track/bulk",
+        "body": {
+          "items": [
+            { "awb": "A01" }, { "awb": "A02" }, { "awb": "A03" }, { "awb": "A04" },
+            { "awb": "A05" }, { "awb": "A06" }, { "awb": "A07" }, { "awb": "A08" },
+            { "awb": "A09" }, { "awb": "A10" }, { "awb": "A11" }
+          ]
+        }
+      },
+      "expect": { "status": 400, "body": { "error": "maksimal 10 resi per permintaan" } }
+    }
+  ]
+}

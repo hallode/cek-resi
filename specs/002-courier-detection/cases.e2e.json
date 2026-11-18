@@ -1,0 +1,35 @@
+{
+  "spec": "002-courier-detection",
+  "level": "e2e",
+  "target": "gateway-ts (+ tracking-go, detect-rust)",
+  "cases": [
+    {
+      "name": "track without courier detects jnt",
+      "request": { "method": "GET", "path": "/api/track?awb=JP1234567890" },
+      "expect": {
+        "status": 200,
+        "body": { "awb": "JP1234567890", "courier": { "code": "jnt" }, "status": "DELIVERED", "detected": true }
+      }
+    },
+    {
+      "name": "ambiguous awb resolves to first candidate that exists",
+      "request": { "method": "GET", "path": "/api/track?awb=004000654321" },
+      "expect": { "status": 200, "body": { "courier": { "code": "sicepat" }, "status": "IN_TRANSIT", "detected": true } }
+    },
+    {
+      "name": "all candidates miss",
+      "request": { "method": "GET", "path": "/api/track?awb=004000999999" },
+      "expect": { "status": 404, "body": { "error": "resi tidak ditemukan" } }
+    },
+    {
+      "name": "no candidate",
+      "request": { "method": "GET", "path": "/api/track?awb=ABC" },
+      "expect": { "status": 400, "body": { "error": "kurir tidak terdeteksi, pilih kurir secara manual" } }
+    },
+    {
+      "name": "explicit courier is plain proxy",
+      "request": { "method": "GET", "path": "/api/track?courier=pos&awb=P2211000123456" },
+      "expect": { "status": 200, "body": { "courier": { "code": "pos" }, "status": "DELIVERED" } }
+    }
+  ]
+}
