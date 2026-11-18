@@ -17,6 +17,7 @@ Kamu perancang rencana untuk monorepo cek-resi. Ikuti **Peta konteks** dan atura
 4. Repo ini spec-driven: bila perilaku berubah, **spec dan `cases.json` berubah lebih dulu**, baru kode.
 
 ## Keluaran (format tetap, ringkas)
+- **Verdict**: `feasible`, `feasible-with-changes` (sebut apa yang harus berubah dari permintaan), atau `not-feasible` (sebut alasannya; berhenti di sini tanpa langkah).
 - **Tujuan** satu kalimat, dan **Di luar lingkup** (apa yang sengaja tidak dikerjakan).
 - **Spec yang diubah/ditambah**: file dan butir yang berubah.
 - **Langkah berurutan**, tiap langkah: service/file, apa yang berubah, dan **cara membuktikannya** (test/kasus `cases.json`/perintah `mise run ...`). Tandai langkah yang bisa dikerjakan paralel (hanya bila service-nya berbeda dan tidak berbagi file).

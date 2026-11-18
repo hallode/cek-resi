@@ -23,6 +23,7 @@ Aplikasi cek resi multi-kurir (data **dummy**; jangan memanggil API kurir asli a
 | Model/effort agen | `.claude/agents.toml` lalu `mise run agents:sync` |
 | Tambah service baru | spec 000 + checklist di bawah |
 | Review | skill `review-code`: diff + spec terkait + pemanggil (via grep) |
+| Pertanyaan sempit soal kode | subagent `explorer` (jawaban + `file:baris`), bukan membaca banyak file sendiri |
 
 ## Service
 | Service | Bahasa | Port | Tugas |
@@ -53,11 +54,11 @@ mise run agents:sync             # terapkan .claude/agents.toml ke definisi agen
 Detail di `.claude/skills/` (diadaptasi dari [ponytail](https://github.com/dietrichgebert/ponytail), MIT).
 - **Perubahan terkecil yang lengkap** (skill `ponytail`): reuse repo → stdlib → dependency terpasang → baru kode baru. Pemanggil, test, `cases.json`, dan status spec ikut diselesaikan.
 - **Jangan dipotong:** validasi batas kepercayaan, error `{"error": ...}`, keamanan (nomor resi tidak masuk log, `textContent` bukan `innerHTML`), aksesibilitas.
-- **Alur default tugas coding non-sepele** (skill `dev-flow`): subagent planner membuat rencana → user menyetujui → subagent executor mengerjakan → user ditanya mau review → subagent reviewer. Model/effort tiap subagent dari `.claude/agents.toml` (jangan override saat memanggil). Review (skill `review-code`) read-only dengan temuan terverifikasi.
+- **Alur default tugas coding non-sepele** (skill `dev-flow`): subagent planner membuat rencana → user menyetujui → subagent executor mengerjakan → user ditanya mau review → subagent reviewer; subagent explorer untuk pertanyaan sempit. Model/effort tiap subagent dari `.claude/agents.toml` (jangan override saat memanggil). Review (skill `review-code`) read-only dengan temuan terverifikasi.
 - Jangan melaporkan hasil yang tidak kamu lihat; tutup balasan dengan apa yang dilewati dan risikonya. Push, komentar/merge PR, dan `mise run scan` hanya atas izin jelas.
 
 ## Checklist service baru
-`services/<nama>/AGENTS.md` + `CLAUDE.md` (isi `@AGENTS.md`) · `GET /health` dan env `PORT` · task `setup|dev|test|lint|fmt:<alias>` di `mise.toml` · harness spectest divalidasi `specs/matcher-cases.json` · baris di tabel Service dan Peta konteks.
+`services/<nama>/AGENTS.md` + `CLAUDE.md` (symlink ke `AGENTS.md`) · `GET /health` dan env `PORT` · task `setup|dev|test|lint|fmt:<alias>` di `mise.toml` · harness spectest divalidasi `specs/matcher-cases.json` · baris di tabel Service dan Peta konteks.
 
 ## Definition of done
 `mise run lint` dan `mise run test` hijau; spec dan status akurat; UI berubah → cek manual lewat `mise run dev`.

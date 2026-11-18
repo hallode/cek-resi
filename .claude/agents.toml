@@ -4,6 +4,12 @@
 #
 # model : opus | sonnet | haiku | fable | inherit | ID model lengkap (mis. claude-opus-5-5)
 # effort: low | medium | high | xhigh | max
+#
+# Pembagian (mengikuti context-circuit, role-tiering.yaml): planner dijalankan sekali per
+# tugas dan semua langkah berikutnya mewarisi kesalahannya; reviewer harus menangkap apa
+# yang sudah diyakini benar oleh model lain. Keduanya layak mendapat model terkuat. Executor
+# memakai token paling banyak; explorer banyak tapi dangkal. Reviewer dari keluarga model
+# yang berbeda dengan executor punya titik buta yang berbeda pula.
 
 [defaults]
 effort = "high"
@@ -16,3 +22,6 @@ model = "sonnet"
 
 [reviewer]
 model = "opus"
+
+[explorer]
+model = "sonnet"

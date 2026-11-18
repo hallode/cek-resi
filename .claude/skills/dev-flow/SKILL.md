@@ -22,13 +22,15 @@ Opsi bisa disebut di pemanggilan, mis. `/dev-flow review=always <tugas>`.
 
 ## Langkah
 
-Selalu beri subagent **path spesifik** (file, spec, kasus) dari Peta konteks di `AGENTS.md`, bukan "baca repo".
+**Brief adalah seluruh konteks subagent** (ia mulai dari nol). Susun berurutan: (1) direktori kerja, (2) apa yang boleh dilakukan di sana (read-only atau edit di path tertentu), (3) rencana/tugas yang dikutip apa adanya, (4) path spesifik dari Peta konteks di `AGENTS.md`. Jangan menulis "baca repo".
+
+Pertanyaan sempit tentang kode ("di mana X dipanggil?") dijawab oleh subagent **`explorer`**, bukan dengan membaca banyak file di sesi utama. Pertanyaan yang saling lepas boleh dikirim ke beberapa explorer sekaligus. Delegasi adalah alat, bukan ritual: hal yang sudah ada di konteks tidak perlu ditanyakan ulang.
 
 ### 1. Plan (subagent `planner`)
 Panggil Agent `subagent_type: "planner"` dengan: tugas dari user apa adanya, baris Peta konteks yang relevan, dan path yang sudah diketahui. Jangan menulis rencana sendiri dan jangan mulai mengedit.
 
 ### 2. Gerbang: setujui rencana
-Hasil subagent tidak terlihat oleh user, jadi **tampilkan rencananya** (tujuan, di luar lingkup, spec yang diubah, langkah, risiko) secara ringkas tapi lengkap. Bila planner menulis **Pertanyaan terbuka**, tanyakan itu dulu.
+Hasil subagent tidak terlihat oleh user, jadi **tampilkan rencananya** (verdict, tujuan, di luar lingkup, spec yang diubah, langkah, risiko) secara ringkas tapi lengkap. Verdict `not-feasible` → sampaikan alasannya dan berhenti. Bila planner menulis **Pertanyaan terbuka**, tanyakan itu dulu.
 
 Lalu tanya dengan `AskUserQuestion`:
 - **"OK, kerjakan"**: lanjut ke langkah 3 tanpa pertanyaan lain.
