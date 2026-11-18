@@ -6,4 +6,4 @@ Kalkulator ongkir dummy (port `8083`). Aturan umum: [../../AGENTS.md](../../AGEN
 - Task: `mise run {dev,test,lint,fmt}:ongkir`.
 - Error harus berformat `{"error": "..."}` (K2). Validasi query param manual (terima `str | None`), karena validasi otomatis FastAPI menghasilkan 422 dengan format lain.
 - `tests/spectest.py` — harness spec; spec yang diimplementasikan didaftarkan di `SPEC_FILES` pada `tests/test_spec.py`.
-- Status: baru `/health`. Kota, tarif, dan rumus (spec 004) belum dibuat.
+- Status: spec 004 terimplementasi — `/api/ongkir`, `/api/ongkir/cities`, `/health`. Data (`app/data.py`), rumus (`app/pricing.py`, fungsi murni), dan validasi query (`app/validation.py`) dipisah dari routing (`app/main.py`).

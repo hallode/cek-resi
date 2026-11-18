@@ -11,6 +11,12 @@ const STATUS_LABEL = {
   RETURNED: "Diretur",
 };
 
+const ZONE_LABEL = {
+  DALAM_KOTA: "Dalam kota",
+  SATU_PULAU: "Satu pulau",
+  ANTAR_PULAU: "Antar pulau",
+};
+
 const $ = (id) => document.getElementById(id);
 let couriers = [];
 let selected = null;
@@ -152,3 +158,125 @@ $("track-form").addEventListener("submit", (ev) => {
 loadCouriers()
   .then(renderHistory)
   .catch(() => showMessage("Gagal memuat daftar kurir", true));
+
+// ---------------------------------------------------------------- Cek Ongkir
+
+function showTab(name) {
+  for (const t of ["resi", "ongkir"]) {
+    const active = t === name;
+    $(`panel-${t}`).hidden = !active;
+    $(`tab-${t}`).classList.toggle("active", active);
+    $(`tab-${t}`).setAttribute("aria-selected", String(active));
+  }
+}
+
+$("tab-resi").addEventListener("click", () => showTab("resi"));
+$("tab-ongkir").addEventListener("click", () => showTab("ongkir"));
+
+async function loadCities() {
+  const res = await fetch("/api/ongkir/cities");
+  const cities = await res.json();
+  for (const id of ["o-origin", "o-destination"]) {
+    $(id).replaceChildren(
+      ...cities.map((c) => {
+        const opt = document.createElement("option");
+        opt.value = c.code;
+        opt.textContent = c.name;
+        return opt;
+      }),
+    );
+  }
+  if (cities.length > 1) $("o-destination").value = cities[1].code;
+}
+
+function showOngkirMessage(text, isError = false) {
+  const m = $("o-message");
+  m.textContent = text;
+  m.classList.toggle("error", isError);
+  m.hidden = false;
+}
+
+$("o-dims-toggle").addEventListener("click", () => {
+  const open = $("o-dims").hidden;
+  $("o-dims").hidden = !open;
+  $("o-dims-toggle").setAttribute("aria-expanded", String(open));
+  $("o-dims-toggle").textContent = `${open ? "−" : "+"} Dimensi paket (opsional)`;
+});
+
+async function checkOngkir() {
+  // Send what the user typed as-is; the server owns validation (spec 004).
+  const params = new URLSearchParams({
+    origin: $("o-origin").value,
+    destination: $("o-destination").value,
+    weight: $("o-weight").value,
+  });
+  if (!$("o-dims").hidden) {
+    for (const [key, id] of [["length", "o-length"], ["width", "o-width"], ["height", "o-height"]]) {
+      if ($(id).value !== "") params.set(key, $(id).value);
+    }
+  }
+
+  showOngkirMessage("Memuat...");
+  $("o-result").hidden = true;
+
+  try {
+    const res = await fetch(`/api/ongkir?${params}`);
+    const body = await res.json();
+    if (!res.ok) {
+      showOngkirMessage(body.error || "Gagal memuat data", true);
+      return;
+    }
+    $("o-message").hidden = true;
+    renderOngkir(body);
+  } catch {
+    showOngkirMessage("Tidak dapat terhubung ke server", true);
+  }
+}
+
+// Names come from /api/couriers (tracking); ongkir must still render if that call failed.
+function courierName(code) {
+  const known = Array.isArray(couriers) ? couriers.find((c) => c.code === code) : null;
+  return known?.name || code.toUpperCase();
+}
+
+function renderOngkir(r) {
+  $("o-summary").textContent =
+    `${r.origin.name} → ${r.destination.name} · ${ZONE_LABEL[r.zone] || r.zone} · ` +
+    `berat tertagih ${r.billable_weight_kg} kg`;
+
+  const cheapest = cheapestIndex(r.options);
+  $("o-rows").replaceChildren(
+    ...r.options.map((o, i) => {
+      const tr = document.createElement("tr");
+      if (i === cheapest) tr.className = "cheapest";
+
+      const courier = document.createElement("td");
+      courier.textContent = courierName(o.courier);
+      if (i === cheapest) {
+        const tag = document.createElement("span");
+        tag.className = "badge badge-cheapest";
+        tag.textContent = "Termurah";
+        courier.append(tag);
+      }
+
+      const service = document.createElement("td");
+      service.textContent = o.service;
+      const etd = document.createElement("td");
+      etd.textContent = formatEtd(o.etd_days);
+      const price = document.createElement("td");
+      price.className = "num";
+      price.textContent = formatRupiah(o.price);
+
+      tr.append(courier, service, etd, price);
+      return tr;
+    }),
+  );
+  $("o-result").hidden = false;
+}
+
+$("ongkir-form").addEventListener("submit", (ev) => {
+  ev.preventDefault();
+  checkOngkir();
+});
+
+loadCities().catch(() => showOngkirMessage("Gagal memuat daftar kota", true));

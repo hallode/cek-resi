@@ -12,6 +12,12 @@
   </header>
 
   <main class="container">
+    <nav class="tabs" role="tablist" aria-label="Menu">
+      <button type="button" id="tab-resi" class="tab active" role="tab" aria-selected="true" aria-controls="panel-resi">Cek Resi</button>
+      <button type="button" id="tab-ongkir" class="tab" role="tab" aria-selected="false" aria-controls="panel-ongkir">Cek Ongkir</button>
+    </nav>
+
+    <div id="panel-resi" role="tabpanel" aria-labelledby="tab-resi">
     <section class="card">
       <h1>Cek Resi Paket</h1>
       <p class="muted">Pilih ekspedisi, lalu masukkan nomor resi. Data yang ditampilkan adalah data dummy.</p>
@@ -52,12 +58,52 @@
         <tbody id="r-history"></tbody>
       </table>
     </section>
+    </div>
+
+    <div id="panel-ongkir" role="tabpanel" aria-labelledby="tab-ongkir" hidden>
+      <section class="card">
+        <h1>Cek Ongkir</h1>
+        <p class="muted">Bandingkan tarif antar ekspedisi. Data yang ditampilkan adalah data dummy.</p>
+
+        <form id="ongkir-form" class="ongkir-form" novalidate>
+          <label>Kota asal
+            <select id="o-origin"></select>
+          </label>
+          <label>Kota tujuan
+            <select id="o-destination"></select>
+          </label>
+          <label>Berat (gram)
+            <input id="o-weight" type="text" inputmode="numeric" placeholder="1000" autocomplete="off">
+          </label>
+
+          <button type="button" id="o-dims-toggle" class="link" aria-expanded="false" aria-controls="o-dims">+ Dimensi paket (opsional)</button>
+          <div id="o-dims" class="dims" hidden>
+            <label>Panjang (cm) <input id="o-length" type="text" inputmode="numeric" autocomplete="off"></label>
+            <label>Lebar (cm) <input id="o-width" type="text" inputmode="numeric" autocomplete="off"></label>
+            <label>Tinggi (cm) <input id="o-height" type="text" inputmode="numeric" autocomplete="off"></label>
+          </div>
+
+          <button type="submit" class="primary">Cek Ongkir</button>
+        </form>
+      </section>
+
+      <section id="o-message" class="card message" hidden></section>
+
+      <section id="o-result" class="card" hidden>
+        <div id="o-summary" class="muted"></div>
+        <table class="quotes">
+          <thead><tr><th>Kurir</th><th>Layanan</th><th>Estimasi</th><th class="num">Harga</th></tr></thead>
+          <tbody id="o-rows"></tbody>
+        </table>
+      </section>
+    </div>
   </main>
 
   <footer class="container muted small">
     Proyek demo. Tidak terafiliasi dengan ekspedisi mana pun.
   </footer>
 
+  <script src="ongkir-format.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
