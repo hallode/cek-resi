@@ -99,7 +99,7 @@ Bila ada breaking change, tanya dengan `AskUserQuestion`:
 - Verifikasi: `git ls-remote --heads origin <branch>` sama dengan `git rev-parse HEAD`.
 
 ### 7. Pull request (lewati bila `no-pr`)
-Cek `gh auth status`. Bila PR untuk branch ini sudah ada (`gh pr view --json url,body`), tampilkan URL-nya. Dipanggil dari `dev-flow` dengan hasil review → ganti hanya bagian *Review* beserta penandanya di body PR (`gh pr edit <n> --body-file <tmp>.md`, bagian lain dibiarkan) supaya penandanya mengikuti head baru; selain itu mengubah judul/isi PR yang sudah ada hanya bila user minta.
+Cek `gh auth status`. Bila PR untuk branch ini sudah ada (`gh pr view --json url,body`), tampilkan URL-nya. Perbarui bagian yang dihasilkan run ini (`gh pr edit <n> --body-file <tmp>.md`): *Breaking changes* dan *Testing* selalu (hasil langkah 4-5 untuk head baru), serta *Review* + penanda bila dipanggil dari `dev-flow` dengan hasil review (tambahkan sebelum footer bila belum ada; tanpa hasil review → hapus penanda lama). Ringkasan dan *Changes* tulisan user dibiarkan; mengubah judul atau bagian lain hanya bila user minta.
 
 Buat PR:
 ```sh
