@@ -87,12 +87,14 @@ Error level request (400):
 - **R7** — Logika "deteksi lalu coba kandidat" dipakai bersama oleh `GET /api/track` (002) dan bulk; implementasikan sekali di gateway (`src/resolve.ts`).
 
 ## UI & permalink
-- Tab **"Banyak Resi"**: textarea (satu resi per baris, atau dipisah koma/spasi), kurir opsional (pakai pilihan kurir aktif, atau "Otomatis").
-- Hasil berupa tabel ringkas: Resi | Kurir | Status (badge) | Update terakhir | aksi "Detail" (membuka tampilan tunggal).
-- Permalink:
-  - `/?courier=sicepat&awb=004000123456` → saat load, langsung cek resi tunggal.
-  - `/?awb=004000123456,JP1234567890` → langsung cek banyak (kurir otomatis).
-  - Setelah pencarian, URL di-update via `history.replaceState`, lalu tombol **"Salin link"** menyalin URL tersebut.
+Mengikuti aturan frontend satu halaman di [000](../000-architecture/spec.md#frontend-satu-halaman-satu-tab-per-fitur) (F1–F7).
+
+- Tab **"Banyak Resi"** (`#/bulk`): textarea (satu resi per baris, atau dipisah koma/spasi), kurir opsional (pakai pilihan kurir aktif, atau "Otomatis").
+- Hasil berupa tabel ringkas: Resi | Kurir | Status (badge) | Update terakhir | aksi "Detail" yang berpindah ke tab Cek Resi untuk resi itu (F7).
+- Permalink (hash route):
+  - `#/resi?courier=sicepat&awb=004000123456` → saat load, langsung cek resi tunggal (tab Cek Resi).
+  - `#/bulk?awb=004000123456,JP1234567890` → langsung cek banyak (kurir otomatis).
+  - Setelah pencarian, hash di-update via `history.replaceState`, lalu tombol **"Salin link"** menyalin URL lengkap.
 
 ## Kriteria penerimaan
 - [ ] `cases.json` lulus via `node --test` tanpa upstream (validasi request saja).

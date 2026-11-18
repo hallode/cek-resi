@@ -94,7 +94,9 @@ Selain cek resi, user ingin membandingkan ongkir antar kurir sebelum mengirim (s
 - **R5** — Semua layanan di tabel tarif selalu tersedia untuk semua zona.
 
 ## UI
-- Tab **"Cek Ongkir"**: dropdown asal & tujuan (dari `/api/ongkir/cities`), input berat (gram), dimensi opsional (bisa dibuka/tutup).
+Mengikuti aturan frontend satu halaman di [000](../000-architecture/spec.md#frontend-satu-halaman-satu-tab-per-fitur) (F1–F7).
+
+- Tab **"Cek Ongkir"** (`#/ongkir`, modul `web/js/ongkir.js`): dropdown asal & tujuan (dari `/api/ongkir/cities`), input berat (gram), dimensi opsional (bisa dibuka/tutup).
 - Hasil berupa tabel: Kurir | Layanan | Estimasi | Harga (format `Rp 22.000`), baris termurah diberi label "Termurah".
 
 ## Kriteria penerimaan
@@ -106,4 +108,4 @@ Selain cek resi, user ingin membandingkan ongkir antar kurir sebelum mengirim (s
 - [ ] ongkir-py: `app/data.py` (kota, tarif), `app/pricing.py` (R2–R4, fungsi murni), `app/main.py` (FastAPI, validasi, error sesuai tabel). Terima query param sebagai `str | None` lalu validasi manual — validasi otomatis FastAPI menghasilkan 422 dengan format berbeda dari K2.
 - [ ] ongkir-py: `tests/spectest.py` + `tests/test_spec.py`, `tests/test_pricing.py`.
 - [ ] gateway-ts: proxy prefix `/api/ongkir` → `ONGKIR_URL`.
-- [ ] web: tab Cek Ongkir.
+- [ ] web: `web/js/ongkir.js` + markup tab Cek Ongkir (butuh kerangka tab dari 000; sebelum itu belum bisa tampil di UI).

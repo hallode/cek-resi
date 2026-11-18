@@ -4,7 +4,7 @@
 |---|---|
 | Status | Draft (endpoint sudah ada; provider adapter belum) |
 | Service pemilik | `tracking-go` (Go) |
-| Service lain yang tersentuh | `gateway-ts` (proxy) |
+| Service lain yang tersentuh | `gateway-ts` (proxy), `web/` |
 | Bergantung pada | 000 |
 | Test vectors | [`cases.json`](cases.json) |
 
@@ -74,6 +74,14 @@ func (r *Registry) Get(courierCode string) (Provider, bool)
 - `main.go` mendaftarkan `DummyProvider` untuk **semua** kurir kanonik.
 - `store` tetap pemilik SQL, `api` tetap pemilik JSON, `provider` jembatan di antaranya.
 
+## UI
+Tab **Cek Resi** (`#/resi`, modul `web/js/resi.js`), mengikuti aturan frontend di [000](../000-architecture/spec.md#frontend-satu-halaman-satu-tab-per-fitur) (F1–F7). Perilakunya sama dengan UI cek resi yang sudah ada, ditambah permalink:
+
+- Tombol kurir dari `GET /api/couriers`, input No Resi, riwayat pencarian (10 terakhir, `localStorage`).
+- Hasil: no resi, ekspedisi, layanan, pengirim → penerima, badge status (label & warna per status), tabel "Perjalanan Paket" (terbaru di atas).
+- Status error (400/404/502/501) menampilkan pesan `error` dari respon.
+- Permalink `#/resi?courier=<kode>&awb=<resi>`: saat tab dibuka dengan parameter itu, langsung cek; setelah pencarian, hash di-update via `history.replaceState`.
+
 ## Kriteria penerimaan
 - [ ] Semua kasus di `cases.json` lulus via test Go yang membaca file tersebut.
 - [ ] Handler `api` tidak mengimpor `store` secara langsung untuk tracking.
@@ -84,3 +92,4 @@ func (r *Registry) Get(courierCode string) (Provider, bool)
 - [ ] `api.track` memakai registry; tambah `source`; mapping error → status sesuai tabel.
 - [ ] `internal/spectest` + test yang memuat `specs/001-tracking-provider/cases.json`.
 - [ ] Ganti `TestTrack` tabel lama dengan cases dari spec (hindari duplikasi kasus).
+- [ ] web: pindahkan UI cek resi yang ada ke `web/js/resi.js` + permalink `#/resi?...` (setelah kerangka tab dari 000 ada).
