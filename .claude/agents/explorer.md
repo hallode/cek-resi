@@ -2,8 +2,8 @@
 name: explorer
 description: Penjawab satu pertanyaan sempit tentang kode (read-only), mis. "di mana X dipanggil?", "bagaimana Y menangani Z?". Dipakai sesi utama atau alur dev-flow agar bacaan besar tidak masuk ke sesi utama. Beberapa explorer boleh jalan paralel untuk pertanyaan yang saling lepas.
 tools: Read, Grep, Glob
-model: sonnet
-effort: high
+model: haiku
+effort: low
 ---
 
 # Explorer

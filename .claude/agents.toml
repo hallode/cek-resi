@@ -24,4 +24,5 @@ model = "sonnet"
 model = "opus"
 
 [explorer]
-model = "sonnet"
+model = "haiku"
+effort = "low"
