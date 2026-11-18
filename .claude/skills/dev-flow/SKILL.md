@@ -1,10 +1,10 @@
 ---
 name: dev-flow
-description: Alur kerja default untuk SETIAP tugas coding yang bukan sepele di repo cek-resi (fitur, perbaikan bug, refaktor, perubahan spec). Subagent planner membuat rencana -> user menyetujui -> subagent executor mengerjakan -> user ditanya mau review atau tidak -> subagent reviewer meninjau. Pakai juga saat user minta "plan", "rencanakan", "kerjakan", atau /dev-flow. Untuk hotfix ("hotfix", "fix cepat", mode=hotfix) planner dilewati.
-argument-hint: "<deskripsi tugas> [mode=normal|hotfix] [review=ask|always|never] [rounds=N] [ponytail=lite|full|ultra]"
+description: Alur kerja default untuk SETIAP tugas coding yang bukan sepele di repo cek-resi (fitur, perbaikan bug, refaktor, perubahan spec). Subagent planner membuat rencana -> user menyetujui -> subagent executor mengerjakan -> commit -> subagent reviewer meninjau sebelum PR -> user ditanya mau PR. Pakai juga saat user minta "plan", "rencanakan", "kerjakan", atau /dev-flow. Untuk hotfix ("hotfix", "fix cepat", mode=hotfix) planner dilewati.
+argument-hint: "<deskripsi tugas> [mode=normal|hotfix] [review=always|ask|never] [rounds=N] [ponytail=lite|full|ultra]"
 ---
 
-# Dev flow: plan -> OK -> execute -> review?
+# Dev flow: plan -> OK -> execute -> review -> PR?
 
 Skill ini dijalankan oleh **sesi utama** (orkestrator). Subagent tidak bisa bertanya ke user, jadi setiap gerbang persetujuan ditanyakan oleh sesi utama dengan `AskUserQuestion`.
 
@@ -14,7 +14,7 @@ Skill ini dijalankan oleh **sesi utama** (orkestrator). Subagent tidak bisa bert
 | Opsi | Default | Arti |
 |---|---|---|
 | `mode` | `normal` | `hotfix`: lewati langkah 1-2 (lihat [Jalur hotfix](#jalur-hotfix)) |
-| `review` | `ask` | `ask`: tanya user setelah eksekusi; `always`: langsung review; `never`: lewati |
+| `review` | `always` | `always`: reviewer jalan setelah commit, sebelum PR; `ask`: tanya user dulu; `never`: lewati (PR tidak dapat penanda review, jadi `review-pr` akan mereview penuh) |
 | `rounds` | `2` | maksimal putaran perbaikan -> tinjau ulang |
 | `ponytail` | `full` | level executor ([ponytail](../ponytail/SKILL.md)) |
 
@@ -44,24 +44,24 @@ Buat branch dulu sesuai [Branch](#branch). Lalu panggil Agent `subagent_type: "e
 
 Setelah executor selesai, jalankan sendiri `mise run lint` dan `mise run test` lalu baca hasilnya. Laporan agen tidak cukup. Bila merah: panggil executor lagi dengan output kegagalannya (maksimal `rounds` kali), lalu laporkan ke user bila masih merah.
 
-### 4. Gerbang: review?
-Ringkas ke user apa yang berubah (file + hasil lint/test berangka). Lalu, bila `review=ask`, tanya dengan `AskUserQuestion`:
-- **"Ya, review"**: lanjut ke langkah 5.
-- **"Tidak, selesai"**: lanjut ke langkah 6.
+### 4. Commit dan ringkas
+Commit (di branch fitur, bukan `master`; stage semua file tugas ini, termasuk file baru) **sebelum** review, supaya yang direview persis yang akan di-push. Ringkas ke user apa yang berubah (file + hasil lint/test berangka), lalu lanjut ke langkah 5.
+- `review=ask`: tanya dulu dengan `AskUserQuestion` ("Ya, review" → langkah 5 / "Tidak, selesai" → langkah 6). Jangan tawarkan untuk perubahan berisiko (git force push, gerbang merge, eksekusi kode, data/keamanan): review di sini menggantikan review ulang saat PR dibuka.
+- `review=never`: langsung ke langkah 6 (PR tanpa penanda review).
 
 ### 5. Review (subagent `reviewer`)
-Panggil Agent `subagent_type: "reviewer"` dengan **konteks segar**: hanya ruang lingkup diff (`git diff` / hash commit) dan spec terkait, **bukan** ringkasan atau klaim executor, agar tinjauannya independen. Tampilkan laporannya ke user (Must fix / Should fix / Nice to have + verdict).
+Panggil Agent `subagent_type: "reviewer"` dengan **konteks segar**: rentang commit `$(git merge-base origin/master HEAD)..HEAD` (bukan `git diff` working tree, yang tidak memuat file baru) dan spec terkait, **bukan** ringkasan atau klaim executor, agar tinjauannya independen. Catat `HEAD` yang direview. Tampilkan laporannya ke user (Must fix / Should fix / Nice to have + verdict).
 
-Bila ada **Must fix**, tanya dengan `AskUserQuestion`:
-- **"Perbaiki Must fix"**: executor memperbaiki (beri daftar temuannya), lalu jalankan lint/test dan reviewer meninjau ulang diff perbaikan saja. Maksimal `rounds` putaran.
-- **"Biarkan, saya putuskan nanti"**: lanjut ke langkah 6.
+Bila ada **Must fix** atau **Should fix**, tanya dengan `AskUserQuestion`:
+- **"Perbaiki"**: executor memperbaiki dengan daftar temuannya, dan diminta memperbaiki **seluruh kelas masalahnya** (cari tempat lain dengan pola yang sama, bukan hanya baris yang disebut). Commit perbaikannya, jalankan lint/test, lalu reviewer meninjau ulang seluruh rentang. Maksimal `rounds` putaran.
+- **"Biarkan, saya putuskan nanti"**: lanjut ke langkah 6; temuannya ditulis di isi PR.
 
-Should fix / Nice to have tidak dikerjakan otomatis; sebutkan saja.
+Nice to have tidak dikerjakan; tulis di isi PR. Berhenti memutar begitu tidak ada Must fix / Should fix.
 
 ### 6. Selesai
-- Commit selalu (di branch fitur, bukan `master`).
+- Hasil review untuk `push-pr`: verdict, Must fix / Should fix / Nice to have yang dibiarkan, dan **sidik isi** rentang yang direview terakhir, dihitung pada `HEAD` yang direview: `git diff-tree -r --no-renames "$(git merge-base origin/master HEAD)" HEAD | git hash-object --stdin`. Hasil `e69de29bb2d1d6434b8b29ae775ad8c2e48c5391` = diff kosong atau perintah gagal → tidak ada sidik isi. Ada commit setelah review terakhir (`HEAD` berubah) → review ulang, atau PR tanpa penanda.
 - Tanya dengan `AskUserQuestion` apakah dibuatkan PR. Sebutkan dulu bila lint/test merah atau masih ada Must fix.
-  - **"Ya, buat PR"**: jalankan skill [push-pr](../push-pr/SKILL.md) (cek nama, lint/test/e2e, breaking change, push, PR). Pakai opsi `draft` bila lint/test merah atau ada Must fix tersisa; temuan yang dibiarkan ditulis di isi PR. Tampilkan URL PR-nya.
+  - **"Ya, buat PR"**: jalankan skill [push-pr](../push-pr/SKILL.md) (cek nama, lint/test/e2e, breaking change, push, PR) dengan hasil review di atas, supaya isi PR memuat [penanda review](../push-pr/SKILL.md#penanda-review-sebelum-pr). Pakai opsi `draft` bila lint/test merah atau ada Must fix tersisa; temuan yang dibiarkan ditulis di isi PR. Tampilkan URL PR-nya.
   - **"Tidak, simpan lokal"**: jangan push; sebutkan nama branch-nya.
 - Tidak pernah push langsung ke `master`; merge PR hanya atas permintaan user.
 - Laporkan: apa yang berubah, hasil verifikasi, temuan yang dibiarkan, dan yang belum bisa diperiksa (mis. tampilan browser).
@@ -78,7 +78,7 @@ Pengecualian: putaran perbaikan dalam alur yang sama tetap di branch itu, dan us
 Untuk bug yang jelas: kode menyimpang dari spec yang sudah ada, penyebab dan lingkupnya sudah diketahui. Dipakai bila user menyebut "hotfix"/`mode=hotfix`.
 - Lewati langkah 1-2 (tanpa planner dan tanpa gerbang rencana). Tulis ringkas ke user dalam 2-3 baris: bug, penyebab dugaan, file yang akan diubah; lalu langsung kerjakan.
 - Branch `hotfix/<nama>` (lihat [Branch](#branch)). Penyebab belum jelas → satu `explorer` dulu, bukan planner.
-- Langkah 3-6 tetap berlaku: executor, lint/test dijalankan sendiri, tanya review, commit, tanya PR. Bila belum ada kasus di `cases.json` yang menangkap bug ini, executor menambahkannya.
+- Langkah 3-6 tetap berlaku: executor, lint/test dijalankan sendiri, commit, review, tanya PR. Bila belum ada kasus di `cases.json` yang menangkap bug ini, executor menambahkannya.
 - Pindah ke alur normal (berhenti dan sampaikan ke user) bila ternyata perlu mengubah perilaku di spec, menyentuh lebih dari satu service, atau perbaikannya tidak kecil.
 
 ## Batas

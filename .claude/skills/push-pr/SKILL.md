@@ -38,6 +38,7 @@ git log --oneline origin/<base>..HEAD
 
 ### Gerbang tulis ulang riwayat yang sudah di-push
 Berlaku untuk **setiap** penulisan ulang commit yang sudah ada di remote (`git ls-remote --heads origin <branch>` tidak kosong): rebase (2a), reword, squash. Berurutan, **sebelum** mengubah apa pun:
+0. Lease sudah dicatat di run ini (gerbang sudah lolos, mis. reword lalu rebase): cukup `git fetch origin` lalu `git rev-parse origin/<branch>` == lease → lanjut tanpa bertanya dan tanpa mencatat ulang; berbeda → berhenti dan laporkan. Cek ancestor di bawah tidak dipakai lagi karena commit lama sudah ditulis ulang.
 1. `git fetch origin`, lalu `git merge-base --is-ancestor origin/<branch> HEAD`. Gagal → ada commit di remote yang belum ada di lokal (mis. dari kolaborator): **berhenti** dan laporkan (`git log HEAD..origin/<branch>`); jangan tulis ulang dan jangan force push.
 2. Tanya dengan `AskUserQuestion`: penulisan ulang perlu force push dan membuat komentar inline di PR jadi outdated.
 3. Disetujui → catat `lease=$(git rev-parse origin/<branch>)`, **baru** tulis ulang. Lease ini dipakai di langkah 6.
@@ -122,8 +123,21 @@ Isi `<tmp>.md` (bahasa Inggris, path relatif agar link jalan di GitHub):
 - Compatibility with `<base>` spec cases: <n> pass, <n> fail
 - Not checked: <mis. UI belum dicoba di browser sungguhan>
 
+## Review
+<hanya bila ada hasil review dari dev-flow; lihat "Penanda review sebelum PR">
+
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 ```
+
+#### Penanda review sebelum PR
+Dipanggil dari `dev-flow` dengan hasil review: isi bagian *Review* dengan verdict dan **semua** temuan yang dibiarkan (Must fix, Should fix, Nice to have), lalu satu baris penanda:
+```
+<!-- pre-pr-review: head=<sha> fp=<sidik isi> verdict=<siap-merge|perbaiki-dulu> must=<n> -->
+```
+- `fp` (sidik isi): hitung ulang sekarang, setelah langkah 2a: `git diff-tree -r --no-renames "$(git merge-base origin/<base> HEAD)" HEAD | git hash-object --stdin`. Harus 40 hex, **bukan** `e69de29bb2d1d6434b8b29ae775ad8c2e48c5391` (hash isi kosong: diff kosong atau perintah gagal), dan **sama** dengan sidik isi dari dev-flow. Berbeda (isi berubah setelah review, mis. resolusi konflik rebase) atau tidak valid → jangan tulis penanda; tulis "Review sebelum PR tidak berlaku: isi berubah setelah review". Sidik ini membandingkan blob per file, jadi perubahan whitespace/indentasi pun terdeteksi; rebase yang tidak menyentuh file PR tidak mengubahnya.
+- `head`: `git rev-parse HEAD` yang di-push.
+- Verdict review "tidak bisa dinilai" → jangan tulis penanda.
+- Tanpa hasil review (mis. `/push-pr` langsung atau `review=never`): tanpa bagian *Review* dan tanpa penanda. `review-pr` akan mereview penuh.
 
 `gh` tidak login / tidak ada: jangan login atas nama user. Tampilkan judul + isi PR siap tempel dan URL `https://github.com/<owner>/<repo>/compare/<base>...<branch>?expand=1` (owner/repo dari `git remote get-url origin`).
 
