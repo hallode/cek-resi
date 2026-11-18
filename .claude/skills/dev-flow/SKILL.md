@@ -61,27 +61,16 @@ Should fix / Nice to have tidak dikerjakan otomatis; sebutkan saja.
 ### 6. Selesai
 - Commit selalu (di branch fitur, bukan `master`).
 - Tanya dengan `AskUserQuestion` apakah dibuatkan PR. Sebutkan dulu bila lint/test merah atau masih ada Must fix.
-  - **"Ya, buat PR"**: `git push -u origin <branch>`, lalu `gh pr create --base master` (judul + ringkasan perubahan, hasil verifikasi, temuan yang dibiarkan). Pakai `--draft` bila lint/test merah atau ada Must fix tersisa. Tampilkan URL PR-nya.
+  - **"Ya, buat PR"**: jalankan skill [push-pr](../push-pr/SKILL.md) (cek nama, lint/test/e2e, breaking change, push, PR). Pakai opsi `draft` bila lint/test merah atau ada Must fix tersisa; temuan yang dibiarkan ditulis di isi PR. Tampilkan URL PR-nya.
   - **"Tidak, simpan lokal"**: jangan push; sebutkan nama branch-nya.
 - Tidak pernah push langsung ke `master`; merge PR hanya atas permintaan user.
 - Laporkan: apa yang berubah, hasil verifikasi, temuan yang dibiarkan, dan yang belum bisa diperiksa (mis. tampilan browser).
 
 ## Branch
-Setiap pekerjaan yang mengubah file dikerjakan di **branch baru**, dibuat otomatis oleh sesi utama sebelum edit pertama (tanpa ditanya). Prefix sesuai jenis pekerjaan:
-
-| Prefix | Dipakai untuk |
-|---|---|
-| `feat/<nnn>-<nama>` | fitur baru atau perubahan perilaku (`nnn` = nomor spec) |
-| `hotfix/<nama>` | `mode=hotfix` |
-| `fix/<nama>` | perbaikan bug lewat alur normal |
-| `refactor/<nama>` | refaktor tanpa perubahan perilaku |
-| `chore/<nama>` | tooling, config, dependency, agen/skill |
-| `docs/<nama>` | dokumen/spec tanpa perubahan perilaku |
-
-`<nama>` kebab-case, singkat (≤ 40 karakter). Langkah:
+Setiap pekerjaan yang mengubah file dikerjakan di **branch baru**, dibuat otomatis oleh sesi utama sebelum edit pertama (tanpa ditanya). Prefix dan format nama: [naming.md](../push-pr/naming.md#branch). Langkah:
 1. Working tree kotor dengan perubahan yang bukan bagian tugas ini → tanya user (bawa ke branch baru / stash / batal), jangan diputuskan sendiri.
 2. `git switch master && git pull --ff-only` (gagal karena offline → lanjut dari `master` lokal dan sebutkan).
-3. `git switch -c <prefix>/<nama>`; nama sudah ada → tambah `-2`, `-3`.
+3. `git switch -c <prefix>/<nama>`.
 
 Pengecualian: putaran perbaikan dalam alur yang sama tetap di branch itu, dan user boleh meminta melanjutkan di branch tertentu.
 
