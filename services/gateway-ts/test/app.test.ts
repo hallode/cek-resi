@@ -75,7 +75,7 @@ test("serves every local asset referenced by index.html, plus the modules they i
       for (const m of src.matchAll(/from "\.\/([^"]+\.js)"/g)) queue.push(`${dir}${m[1]}`);
     }
   }
-  for (const module of ["js/resi.js", "js/router.js", "js/ui.js"]) {
+  for (const module of ["js/bulk.js", "js/resi.js", "js/router.js", "js/ui.js"]) {
     t.assert.equal(seen.has(module), true, `${module} not reached; saw ${[...seen].join(", ")}`);
   }
 });

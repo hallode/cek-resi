@@ -16,4 +16,4 @@ Pintu masuk publik (port `8080`): serve `web/` dan proxy path `/api/*` ke servic
 - `src/spectest.ts` — harness spec (test-only). Spec yang diimplementasikan didaftarkan di `SPEC_FILES` pada `test/spec.test.ts`.
 - Test pakai upstream tiruan (`test/helpers.ts`, `test/fakeupstream.ts`); jangan bergantung pada service lain yang hidup.
 - E2E: `mise run e2e` (butuh `mise run dev` hidup) menjalankan semua `specs/*/cases.e2e.json` lewat `e2e/spec.test.ts`.
-- Rencana: UI tab Banyak Resi (`web/js/bulk.js`, 003, saat ini placeholder "Segera hadir"); proxy ongkir ([004](../../specs/004-ongkir/spec.md)).
+- Rencana: proxy ongkir ([004](../../specs/004-ongkir/spec.md)).

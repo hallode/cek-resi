@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft (gateway-ts sudah ada; e2e menunggu 002; UI `js/bulk.js` belum) |
+| Status | Draft (gateway-ts & UI sudah ada; e2e menunggu 002) |
 | Service pemilik | `gateway-ts` (TypeScript) |
 | Service lain yang tersentuh | `tracking-go`, `detect-rust` (dipanggil), `web/` |
 | Bergantung pada | 001, 002 |
@@ -103,7 +103,10 @@ Error level request, dicek **berurutan**; yang pertama cocok menang:
 ## UI & permalink
 Mengikuti aturan frontend satu halaman di [000](../000-architecture/spec.md#frontend-satu-halaman-satu-tab-per-fitur) (F1–F7).
 
-- Tab **"Banyak Resi"** (`#/bulk`): textarea (satu resi per baris, atau dipisah koma/spasi), pilihan kurir berupa dropdown "Otomatis" (default) + daftar kurir. Kurir yang dipilih dipakai untuk semua item.
+- Tab **"Banyak Resi"** (`#/bulk`, modul `web/js/bulk.js`), memakai komponen bersama 005 (field, chip, tombol, kartu, skeleton):
+  - textarea (satu resi per baris, atau dipisah koma/spasi), petunjuk jumlah resi, kirim dengan tombol **"Cek Semua"** atau Ctrl/⌘+Enter;
+  - pilihan kurir berupa chip (`role="radiogroup"`): **"Otomatis"** (default) + daftar kurir; pilihan terakhir diingat. Kurir yang dipilih dipakai untuk semua item.
+  - state: awal (dengan contoh), loading (skeleton), error 4xx (pesan API di bawah textarea), error 5xx/jaringan (Coba lagi), hasil.
 - Hasil berupa tabel ringkas: Resi | Kurir | Status (badge) | Update terakhir | aksi "Detail" yang berpindah ke tab Cek Resi untuk resi itu (F7).
 - Permalink (hash route):
   - `#/resi?courier=sicepat&awb=004000123456` → saat load, langsung cek resi tunggal (tab Cek Resi).
@@ -119,4 +122,4 @@ Mengikuti aturan frontend satu halaman di [000](../000-architecture/spec.md#fron
 ## Tasks
 - [x] gateway-ts: `src/resolve.ts` (dipakai 002 & 003), `src/bulk.ts`, route `POST /api/track/bulk`.
 - [x] gateway-ts: limiter konkurensi sederhana (tanpa dependency).
-- [ ] web: `js/bulk.js` — tab Banyak Resi, tabel hasil, permalink `#/bulk`, tombol salin link (kerangka tab 000 sudah ada; tampilan ikut 005).
+- [x] web: `js/bulk.js` — tab Banyak Resi, tabel hasil, permalink `#/bulk`, tombol salin link. Diuji di DOM (jsdom) terhadap gateway + tracking asli; belum dicek di browser sungguhan.

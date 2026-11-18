@@ -14,7 +14,9 @@ export function parseHash(hash = location.hash) {
 export function buildHash(tab, params = {}) {
   const qs = new URLSearchParams(
     Object.entries(params).filter(([, v]) => v != null && v !== ""),
-  ).toString();
+  )
+    .toString()
+    .replaceAll("%2C", ","); // keep "awb=A,B" readable in shared links
   return `#/${tab}${qs ? `?${qs}` : ""}`;
 }
 

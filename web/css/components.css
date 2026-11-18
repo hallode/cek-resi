@@ -51,6 +51,15 @@ main { padding-top: 24px; padding-bottom: 32px; }
 }
 .icon-btn:hover { background: var(--surface-2); color: var(--text); }
 .field-error { margin-top: 8px; color: var(--brand); font-size: 14px; font-weight: 500; }
+.textarea {
+  display: block; width: 100%; min-height: 140px; padding: 12px 16px; resize: vertical;
+  background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); color: inherit;
+  font: 16px/1.6 var(--mono); letter-spacing: .5px; text-transform: uppercase;
+}
+.textarea::placeholder { font-family: var(--font); letter-spacing: 0; text-transform: none; color: var(--muted); }
+.textarea[aria-invalid="true"] { border-color: var(--brand); }
+.field-hint { margin-top: 8px; color: var(--muted); font-size: 14px; }
+.field-hint.is-over { color: var(--brand); font-weight: 600; }
 
 /* ---------- chips ---------- */
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -175,6 +184,39 @@ main { padding-top: 24px; padding-bottom: 32px; }
 .tl-item time { font: 13px/1.9 var(--mono); color: var(--muted); }
 .tl-item.is-latest .tl-desc { font-weight: 600; }
 .tl-loc { color: var(--muted); font-size: 14px; }
+
+/* ---------- bulk table (spec 003) ---------- */
+.bulk-title { font-size: 20px; }
+.bulk-title:focus { outline: none; }
+.badge {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px;
+  border-radius: var(--radius-pill); font-size: 14px; font-weight: 600;
+}
+.badge svg { flex: none; }
+.bulk-table { width: 100%; margin-top: 16px; border-collapse: collapse; }
+.bulk-table th {
+  padding: 8px; border-bottom: 1px solid var(--border);
+  color: var(--muted); font-size: 14px; font-weight: 600; text-align: left;
+}
+.bulk-table td { padding: 12px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.bulk-table tbody tr:last-child td { border-bottom: 0; }
+.bulk-awb { font-weight: 600; overflow-wrap: anywhere; }
+.bulk-action { text-align: right; }
+.bulk-action .btn { padding: 0 14px; }
+
+/* Under 640px each row becomes a stacked block (no horizontal scroll at 360px). */
+@media (max-width: 639px) {
+  .bulk-table thead {
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%);
+  }
+  .bulk-table tr { display: block; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .bulk-table tbody tr:last-child { border-bottom: 0; }
+  .bulk-table td { display: block; padding: 4px 0; border: 0; }
+  .bulk-table td[data-label]::before {
+    content: attr(data-label); display: block; color: var(--muted); font-size: 12px; font-weight: 600;
+  }
+  .bulk-action { text-align: left; padding-top: 8px; }
+}
 
 @media (min-width: 960px) {
   .result-body { display: grid; grid-template-columns: 340px 1fr; gap: 32px; align-items: start; }
