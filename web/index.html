@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cek Resi</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="container"><a href="/" class="logo">cek<span>resi</span></a></div>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h1>Cek Resi Paket</h1>
+      <p class="muted">Pilih ekspedisi, lalu masukkan nomor resi. Data yang ditampilkan adalah data dummy.</p>
+
+      <div id="couriers" class="couriers" role="radiogroup" aria-label="Pilih kurir"></div>
+
+      <form id="track-form" class="track-form">
+        <input id="awb" name="awb" type="text" placeholder="No Resi" autocomplete="off" required>
+        <button type="submit">Cek Resi</button>
+      </form>
+
+      <div id="history" class="history" hidden>
+        <span class="muted">Riwayat:</span>
+        <div id="history-list"></div>
+      </div>
+    </section>
+
+    <section id="message" class="card message" hidden></section>
+
+    <section id="result" class="card" hidden>
+      <div class="result-head">
+        <div>
+          <div class="muted">No Resi</div>
+          <div id="r-awb" class="awb"></div>
+        </div>
+        <span id="r-status" class="badge"></span>
+      </div>
+      <dl class="meta">
+        <dt>Ekspedisi</dt><dd id="r-courier"></dd>
+        <dt>Layanan</dt><dd id="r-service"></dd>
+        <dt>Pengirim</dt><dd id="r-sender"></dd>
+        <dt>Penerima</dt><dd id="r-receiver"></dd>
+      </dl>
+
+      <h2>Perjalanan Paket</h2>
+      <table class="timeline">
+        <thead><tr><th>Tanggal</th><th>Keterangan</th></tr></thead>
+        <tbody id="r-history"></tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer class="container muted small">
+    Proyek demo. Tidak terafiliasi dengan ekspedisi mana pun.
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
