@@ -71,17 +71,23 @@ Jika `courier` diisi, gateway hanya proxy biasa ke tracking-go (perilaku 001, ta
 - **R5** — Kode kurir di tabel harus subset dari kurir kanonik (000). Test Rust memastikan setiap contoh di tabel terdeteksi ke kurirnya.
 
 ## UI
-- Di tab Cek Resi (`#/resi`), tombol kurir pertama: **"Otomatis"** (default terpilih) → request `GET /api/track?awb=…` tanpa `courier`.
-- Jika respon punya `detected: true`, tampilkan label kecil "Kurir terdeteksi otomatis: <nama>" dan tandai tombol kurir yang sesuai.
-- Jika error "kurir tidak terdeteksi…", tampilkan pesannya dan biarkan user memilih kurir manual.
+Di tab Cek Resi (`#/resi`), **kurir otomatis adalah jalur utama**; pemilihan manual hanya jalur cadangan.
+
+- **Default**: form hanya berisi input No Resi, tombol "Cek Resi", dan satu tautan kecil **"Pilih ekspedisi manual"**. Pencarian default memanggil `GET /api/track?awb=…` tanpa `courier`.
+- **Panel manual**: tautan itu membuka/menutup baris chip kurir (`aria-expanded`, `aria-controls`). Chip pertama **"Otomatis"** untuk kembali ke mode otomatis; tautan menampilkan kurir yang dipilih bila bukan otomatis ("Ekspedisi: JNE Express (ubah)").
+- **Pilihan manual bersifat sekali pakai**: berlaku untuk pencarian berikutnya saja dan **tidak disimpan** antar sesi (menyimpannya membuat resi kurir lain gagal 404 tanpa user sadar). Setelah hasil ditemukan, pilihan kembali ke "Otomatis" dan panel menutup. Pencarian dari riwayat dan permalink memakai kurir yang tersimpan di sana, dan tidak mengubah mode form.
+- **Panel terbuka otomatis** saat deteksi tidak membantu: respon 400 "kurir tidak terdeteksi…" (pesan API ditampilkan di bawah input) dan 404 pada mode otomatis (pesan menyarankan memilih ekspedisi manual).
+- Jika respon punya `detected: true`, tampilkan label kecil "Kurir terdeteksi otomatis: <nama>" dan, bila panel terbuka, tandai chip kurir yang sesuai.
 
 ## Kriteria penerimaan
 - [x] `cases.json` lulus di `cargo test` (test membaca file via `include_str!`).
 - [x] `cases.e2e.json` lulus via gateway dengan tracking-go + detect-rust hidup.
 - [x] Contoh di tabel R4 = test unit tambahan di Rust.
+- [x] UI: pilihan kurir manual tersembunyi secara default; terbuka otomatis pada 400 "kurir tidak terdeteksi" dan 404 mode otomatis; pilihan manual tidak disimpan dan kembali ke otomatis setelah hasil ditemukan.
 
 ## Tasks
 - [x] detect-rust: `src/patterns.rs` (tabel R4, `regex` dikompilasi sekali via `LazyLock`), handler `/api/detect`, `/health`.
 - [x] detect-rust: `tests/spec.rs` + `matchPartial`.
 - [x] gateway-ts: cabang `track` tanpa courier (R1–R3 pada sisi gateway), env `DETECT_URL`.
 - [x] web: tombol "Otomatis", label hasil deteksi.
+- [x] web: sembunyikan pilihan kurir di balik tautan "Pilih ekspedisi manual" (panel, auto-buka saat deteksi gagal, pilihan sekali pakai).

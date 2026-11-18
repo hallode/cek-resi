@@ -5,7 +5,7 @@ import {
   announce, copyButton, formatDateTime, formatTime, groupByDate, h, icon, relativeTime,
 } from "./ui.js";
 
-const COURIER_KEY = "cekresi.courier";
+const LEGACY_COURIER_KEY = "cekresi.courier"; // a manual choice is no longer persisted (spec 002)
 const HISTORY_KEY = "cekresi.history";
 const HISTORY_MAX = 10;
 const REQUEST_TIMEOUT_MS = 10_000;
@@ -33,7 +33,7 @@ const STEPS = ["PICKED_UP", "IN_TRANSIT", "OUT_FOR_DELIVERY", "DELIVERED"];
 const $ = (id) => document.getElementById(id);
 const state = {
   couriers: [],
-  selected: AUTO,
+  selected: AUTO, // AUTO, or a manual courier code that applies to the next search only
   detected: null, // courier code found by the last automatic search
   current: null, // { courier, awb } currently displayed
   controller: null, // AbortController of the in-flight request
@@ -47,9 +47,11 @@ const statusOf = (s) => STATUS[s] ?? { label: s, icon: "package", tone: "info" }
 // ------------------------------------------------------------------ init
 
 export function init() {
-  state.selected = localStorage.getItem(COURIER_KEY) ?? AUTO;
+  localStorage.removeItem(LEGACY_COURIER_KEY);
+  state.selected = AUTO;
 
   $("track-form").addEventListener("submit", onSubmit);
+  $("courier-toggle").addEventListener("click", () => setPanel($("courier-panel").hidden));
   $("awb").addEventListener("input", () => {
     syncClear();
     clearFieldError();
@@ -74,6 +76,7 @@ export function init() {
   renderEmpty();
   renderHistory();
   renderCouriersLoading();
+  syncToggle();
   loadCouriers();
 
   // Autofocus only where a physical keyboard is likely (avoid the mobile keyboard covering the screen).
@@ -85,7 +88,8 @@ export function enter(params) {
   const awb = params.awb ? normalizeAwb(params.awb) : "";
   const courier = (params.courier ?? "").trim().toLowerCase() || state.selected;
   if (!awb || !courier) return;
-  if (state.current?.awb === awb && state.current.courier === courier) return; // keep what is shown (F4)
+  // keep what is shown (F4); with "auto" any courier already resolved for this awb counts as a match
+  if (state.current?.awb === awb && (courier === AUTO || state.current.courier === courier)) return;
   search(courier, awb);
 }
 
@@ -135,10 +139,27 @@ function renderCouriers() {
   );
 }
 
+/** Opens/closes the manual courier panel (spec 002: automatic detection is the main path). */
+function setPanel(open) {
+  $("courier-panel").hidden = !open;
+  syncToggle();
+}
+
+function syncToggle() {
+  const btn = $("courier-toggle");
+  const open = !$("courier-panel").hidden;
+  btn.setAttribute("aria-expanded", String(open));
+  btn.textContent = open
+    ? "Tutup pilihan ekspedisi"
+    : state.selected === AUTO
+      ? "Pilih ekspedisi manual"
+      : `Ekspedisi: ${courierName(state.selected)} (ubah)`;
+}
+
 function selectCourier(code, { focus = false } = {}) {
   state.selected = code;
   state.detected = null;
-  localStorage.setItem(COURIER_KEY, code);
+  syncToggle();
   renderCouriers();
   if (focus) {
     const btn = $("couriers").querySelector(`[data-code="${CSS.escape(code)}"]`);
@@ -208,9 +229,11 @@ async function search(courier, awb) {
   const controller = new AbortController();
   state.controller = controller;
 
+  // The displayed result is about to be replaced (skeleton, result or error), so it no longer counts as "current".
+  state.current = null;
   state.selected = courier;
   state.detected = null;
-  localStorage.setItem(COURIER_KEY, courier);
+  syncToggle();
   renderCouriers();
   $("awb").value = awb;
   syncClear();
@@ -236,6 +259,10 @@ async function search(courier, awb) {
         renderCouriers();
       }
       state.current = { courier: found, awb: body.awb };
+      // A manual choice is one-shot: back to automatic, panel closed (spec 002).
+      state.selected = AUTO;
+      setPanel(false);
+      renderCouriers();
       renderResult(body);
       addHistory(found, body.awb);
       replaceParams("resi", { courier: found, awb: body.awb });
@@ -243,13 +270,18 @@ async function search(courier, awb) {
       $("result-title")?.focus();
     } else if (res.status === 400) {
       renderEmpty();
+      if (courier === AUTO) setPanel(true); // detection could not help: offer the manual choice
       showFieldError(body.error || "Permintaan tidak valid.");
       announce(body.error || "Permintaan tidak valid.");
     } else if (res.status === 404) {
+      if (courier === AUTO) setPanel(true);
       renderError({
         icon: "search-x",
         title: "Resi tidak ditemukan",
-        text: "Periksa kembali nomor resi, atau coba pilih ekspedisi lain.",
+        text:
+          courier === AUTO
+            ? "Periksa kembali nomor resi, atau pilih ekspedisi secara manual di atas."
+            : "Periksa kembali nomor resi, atau coba ekspedisi lain.",
       });
       announce("Resi tidak ditemukan.");
     } else {

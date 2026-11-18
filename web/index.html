@@ -32,7 +32,7 @@
     <div data-view="resi" hidden>
       <section class="card search-card" aria-labelledby="resi-heading">
         <h1 id="resi-heading">Cek Resi Paket</h1>
-        <p class="muted">Tempel nomor resi, pilih ekspedisi, lalu lihat posisi paketmu. Data yang tampil adalah data demo.</p>
+        <p class="muted">Tempel nomor resi, ekspedisinya kami kenali otomatis. Data yang tampil adalah data demo.</p>
 
         <form id="track-form" novalidate>
           <label class="label" for="awb">No Resi</label>
@@ -45,8 +45,12 @@
           </div>
           <p id="awb-error" class="field-error" role="alert" hidden></p>
 
-          <span class="label" id="courier-label">Ekspedisi</span>
-          <div id="couriers" class="chips chips-scroll" role="radiogroup" aria-labelledby="courier-label"></div>
+          <button type="button" id="courier-toggle" class="link-btn courier-toggle"
+                  aria-expanded="false" aria-controls="courier-panel">Pilih ekspedisi manual</button>
+          <div id="courier-panel" hidden>
+            <span class="label" id="courier-label">Ekspedisi</span>
+            <div id="couriers" class="chips chips-scroll" role="radiogroup" aria-labelledby="courier-label"></div>
+          </div>
 
           <button type="submit" id="submit" class="btn btn-primary btn-block"><span>Cek Resi</span></button>
         </form>

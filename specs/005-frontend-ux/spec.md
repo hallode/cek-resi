@@ -35,7 +35,7 @@ Mobile (360px):
 │ ┌──────────────────┐ │
 │ │ No Resi      [×] │ │  ← input besar, 48px
 │ └──────────────────┘ │
-│ ‹ Otomatis  JNE  J&T ›│ ← chip kurir, scroll horizontal
+│ ▸ Pilih ekspedisi manual│ ← buka baris chip kurir
 │ [      Cek Resi     ]│
 │ Riwayat: ▢ ▢ ▢  Hapus│
 ├──────────────────────┤
@@ -88,7 +88,7 @@ Bar tab menempel di atas (sticky). Tab aktif diberi garis bawah + `aria-current=
 ### Form pencarian (komponen bersama)
 - **Input resi**: satu kolom besar (tinggi ≥ 48px), label terlihat ("No Resi"), placeholder "Tempel nomor resi di sini", tombol hapus (×) saat terisi. Spasi di tepi dipangkas saat dikirim; huruf besar hanya tampilan.
 - **Autofocus** hanya di desktop; di HP tidak (agar keyboard tidak langsung menutupi layar).
-- **Pilihan kurir**: baris chip (`role="radiogroup"`, navigasi panah kiri/kanan). Di HP digeser horizontal dengan scroll-snap, di desktop membungkus. Kurir terakhir yang dipilih diingat (`localStorage`). Setelah spec 002: chip pertama **"Otomatis"** dan menjadi default.
+- **Pilihan kurir**: tersembunyi secara default di balik tautan "Pilih ekspedisi manual" (perilaku lengkap di [002](../002-courier-detection/spec.md#ui)). Panelnya berisi baris chip (`role="radiogroup"`, navigasi panah kiri/kanan); chip pertama **"Otomatis"**. Di HP digeser horizontal dengan scroll-snap, di desktop membungkus. Pilihan manual tidak disimpan antar sesi.
 - **Tombol "Cek Resi"**: lebar penuh di HP; saat memuat berubah jadi spinner + "Mencari…", dinonaktifkan agar tidak dobel kirim.
 - **Riwayat**: maks 10, chip bisa diklik; tombol "Hapus riwayat" dan hapus per-item. Disembunyikan bila kosong.
 - Komponen ini (field, chip, tombol) dipakai ulang oleh tab Banyak Resi dan Cek Ongkir.
