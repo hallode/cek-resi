@@ -8,7 +8,7 @@
 // Usage (needs `mise run dev` running), from the repo root:
 //   mise exec -- node services/gateway-ts/e2e/compat.ts [base-ref]
 // Env: GATEWAY_URL, TRACKING_URL, DETECT_URL, ONGKIR_URL (default localhost:8080-8083).
-// Exit: 0 ok, 1 breaking change, 2 a service was unreachable.
+// Exit: 0 ok, 1 breaking change, 2 a service was unreachable, 3 could not run (bad base ref, unreadable spec file).
 
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
@@ -25,7 +25,24 @@ const URLS: Record<string, string> = {
   "ongkir-py": process.env.ONGKIR_URL ?? "http://localhost:8083",
 };
 
-const git = (...args: string[]) => execFileSync("git", args, { cwd: root, encoding: "utf8" });
+// Tool errors must not exit 1, which means "breaking change".
+const git = (...args: string[]): string => {
+  try {
+    return execFileSync("git", args, { cwd: root, encoding: "utf8", stdio: "pipe" });
+  } catch (err) {
+    console.error(`compat tidak bisa jalan: git ${args.join(" ")}: ${err}`);
+    process.exit(3);
+  }
+};
+
+const parseSpec = (text: string, source: string): SpecFile => {
+  try {
+    return JSON.parse(text) as SpecFile;
+  } catch (err) {
+    console.error(`compat tidak bisa jalan: ${source} bukan JSON valid: ${err}`);
+    process.exit(3);
+  }
+};
 
 const files = git("ls-tree", "-r", "--name-only", base, "specs/")
   .split("\n")
@@ -47,11 +64,11 @@ const skipped: string[] = [];
 const removed: string[] = [];
 
 for (const rel of files) {
-  const file = JSON.parse(git("show", `${base}:${rel}`)) as SpecFile;
+  const file = parseSpec(git("show", `${base}:${rel}`), `${base}:${rel}`);
 
   // Cases present on the base but gone (or renamed) in the working tree.
   const now = join(root, rel);
-  const current = existsSync(now) ? (JSON.parse(readFileSync(now, "utf8")) as SpecFile) : null;
+  const current = existsSync(now) ? parseSpec(readFileSync(now, "utf8"), rel) : null;
   const currentNames = new Set(current?.cases.map((c) => c.name) ?? []);
   for (const c of file.cases) {
     if (!currentNames.has(c.name)) removed.push(`${rel} / ${c.name}`);

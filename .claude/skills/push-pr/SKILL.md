@@ -31,11 +31,15 @@ git log --oneline origin/<base>..HEAD
 - **Sedang di `<base>`** (ada perubahan belum di-commit atau commit lokal yang belum di-push): pilih nama branch sesuai [naming.md](naming.md#branch) dari isi perubahan/spec, lalu `git switch -c <nama>`. Bila ada **commit lokal di `<base>`**, branch baru dibuat di HEAD, lalu `<base>` lokal dikembalikan ke `origin/<base>`. Langkah itu mengubah `<base>` lokal, jadi **tanya dulu** dengan `AskUserQuestion`.
 - **Branch lain yang namanya tidak cocok dengan regex di [naming.md](naming.md#branch):** usulkan nama baru (`git branch -m <baru>`). Bila branch lama sudah ada di remote, sebutkan bahwa branch lama di remote tetap ada dan PR lama (bila ada) tidak ikut pindah; tanya dulu.
 - **Satu fitur per branch:** bila diff menyentuh beberapa spec yang tidak berhubungan, peringatkan user dan sarankan dipecah. Jangan memecah sendiri tanpa persetujuan.
-- **Rebase ke base terbaru:** `git rebase origin/<base>`. Konflik yang jelas (kedua sisi menambah hal berbeda, mis. upstream baru di `ROUTES`) diselesaikan dengan menyimpan keduanya. Konflik yang mengubah perilaku ditanyakan ke user. Setelah konflik, langkah 4 wajib dijalankan ulang.
 
 ### 2. Commit
 - Perubahan yang belum di-commit: stage hanya file yang relevan (jangan pernah `*.db`, `.env`, kredensial, `node_modules/`, `target/`, `.venv/`). Tulis pesan sesuai [naming.md](naming.md#commit-dan-pr).
 - Periksa semua subject di `origin/<base>..HEAD`. Yang melanggar: usulkan perbaikan. Mengubah commit (reword/squash) hanya bila belum di-push atau user setuju, karena perlu force push.
+
+### 2a. Rebase ke base terbaru
+Setelah langkah 2 (working tree bersih): `git rebase origin/<base>`.
+- Branch **sudah ada di remote** (`git ls-remote --heads origin <branch>` tidak kosong): rebase menulis ulang riwayat yang sudah di-push (perlu force push, komentar inline di PR jadi outdated). **Tanya dulu** dengan `AskUserQuestion`; ditolak → lewati rebase bila `git merge-tree --write-tree origin/<base> HEAD` tanpa konflik; ada konflik → berhenti dan laporkan file konfliknya.
+- Konflik yang jelas (kedua sisi menambah hal berbeda, mis. upstream baru di `ROUTES`) diselesaikan dengan menyimpan keduanya. Konflik yang mengubah perilaku ditanyakan ke user. Setelah konflik, langkah 4 wajib dijalankan ulang.
 
 ### 2b. Cek konvensi nama di kode
 Acuan: [naming.md](naming.md). Rust dan Python sudah ditegakkan lint (langkah 4). Sisanya dicek dari baris yang **ditambah** saja:
@@ -58,7 +62,7 @@ Dari `git diff --name-only origin/<base>...HEAD`:
 .claude/skills/push-pr/run-checks.sh origin/<base>
 ```
 Script menjalankan `mise run lint`, `mise run test`, menyalakan semua service (`mise run dev`, menunggu `/health`), lalu `mise run e2e` dan cek kompatibilitas (langkah 5), dan mematikan service lagi. Baca ringkasannya sendiri; jangan melaporkan hasil yang tidak terlihat.
-- **Exit 1 (merah):** berhenti, jangan push. Tampilkan bagian yang gagal dan tawarkan perbaikan. Bila kegagalan **hanya** `compat: breaking change`, lanjut ke langkah 5 (itu breaking change, bukan otomatis bug). `compat: service tidak terjangkau` bukan breaking change: cek log `mise run dev`, perbaiki, ulangi.
+- **Exit 1 (merah):** berhenti, jangan push. Tampilkan bagian yang gagal dan tawarkan perbaikan. Pengecualian: opsi `draft` aktif (mis. dari dev-flow, user memilih "Ya, buat PR" saat lint/test merah) → lanjut push dan PR `--draft`, kegagalannya ditulis di bagian *Testing* PR. Bila kegagalan **hanya** `compat: breaking change`, lanjut ke langkah 5 (itu breaking change, bukan otomatis bug). `compat: service tidak terjangkau` bukan breaking change: cek log `mise run dev`, perbaiki, ulangi. `compat: gagal jalan` = galat alat (mis. base ref salah atau belum di-fetch), bukan breaking change: perbaiki argumennya, ulangi.
 - **Exit 2 (port 8080–8083 sibuk):** script tidak mematikan proses user. Minta user menghentikannya, lalu ulangi. Jangan push tanpa e2e kecuali user mengizinkan secara eksplisit; catat di PR bila dilewati.
 
 ### 5. Breaking change
@@ -81,7 +85,7 @@ Bila ada breaking change, tanya dengan `AskUserQuestion`:
 
 ### 6. Push
 - `git push -u origin <branch>`. **Jangan pernah** push ke `<base>`.
-- Setelah rebase atas branch yang sudah ada di remote: `git push --force-with-lease`, dan beri tahu user. Tidak pernah `--force` biasa.
+- Setelah rebase yang disetujui di langkah 2a: `git push --force-with-lease`. Tidak pernah `--force` biasa.
 - `Permission ... denied` (403): akun tidak punya akses tulis. Jelaskan dua jalan (minta akses collaborator, atau `gh repo fork --remote --remote-name fork` lalu push ke `fork`), lalu berhenti.
 - Verifikasi: `git ls-remote --heads origin <branch>` sama dengan `git rev-parse HEAD`.
 
@@ -121,4 +125,4 @@ Branch, commit, hasil test (berangka), breaking change (atau "tidak ada"), URL P
 ## Batas
 - Tidak pernah: push ke `<base>`, `--force` tanpa `-with-lease`, merge PR, menghapus branch remote, `--no-verify`.
 - Tidak mematikan proses user yang memakai port 8080–8083.
-- Mengubah riwayat yang sudah di-push (reword, squash, rename branch) hanya dengan persetujuan.
+- Mengubah riwayat yang sudah di-push (rebase, reword, squash, rename branch) hanya dengan persetujuan.

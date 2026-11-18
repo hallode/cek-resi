@@ -53,8 +53,8 @@ trap 'kill -- -"$dev_pid" 2>/dev/null; wait "$dev_pid" 2>/dev/null' EXIT
 
 ready=0
 for _ in $(seq 1 180); do
-  if curl -sf localhost:8080/health >/dev/null && curl -sf localhost:8081/health >/dev/null &&
-    curl -sf localhost:8082/health >/dev/null && curl -sf localhost:8083/health >/dev/null; then
+  if curl -sf -m 2 localhost:8080/health >/dev/null && curl -sf -m 2 localhost:8081/health >/dev/null &&
+    curl -sf -m 2 localhost:8082/health >/dev/null && curl -sf -m 2 localhost:8083/health >/dev/null; then
     ready=1
     break
   fi
@@ -69,7 +69,7 @@ if [[ $ready -eq 0 ]]; then
 fi
 
 run e2e mise run e2e
-# compat exits 1 = breaking change, 2 = a service was unreachable; its report is always shown.
+# compat exits 1 = breaking change, 2 = a service was unreachable, 3 = could not run; its report is always shown.
 compat_log="$log_dir/compat.log"
 mise exec -- node services/gateway-ts/e2e/compat.ts "$base" >"$compat_log" 2>&1
 compat_status=$?
@@ -77,6 +77,7 @@ cat "$compat_log"
 case $compat_status in
 0) summary+=("OK    compat") ;;
 1) summary+=("GAGAL compat: breaking change (lihat di atas)") status=1 ;;
-*) summary+=("GAGAL compat: service tidak terjangkau") status=1 ;;
+2) summary+=("GAGAL compat: service tidak terjangkau") status=1 ;;
+*) summary+=("GAGAL compat: gagal jalan (exit $compat_status; base ref?)") status=1 ;;
 esac
 finish
