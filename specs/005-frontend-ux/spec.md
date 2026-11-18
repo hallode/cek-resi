@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Implemented sebagian (kode selesai, lolos uji DOM otomatis; belum diverifikasi di browser sungguhan) |
 | Pemilik | `web/` (frontend; tidak ada service backend) |
 | Service lain yang tersentuh | — (hanya memakai API yang sudah ada via gateway) |
 | Bergantung pada | 000 (aturan frontend F1–F7), 001 (tab Cek Resi) |
@@ -147,6 +147,8 @@ web/
 ```
 
 ## Kriteria penerimaan
+> **Status verifikasi.** Perilaku sudah diuji otomatis di DOM (jsdom) terhadap server asli: tab & hash route, state awal/loading/404/400/hasil, varian `RETURNED`, permalink, navigasi keyboard, riwayat, dan teks API tidak diparse sebagai HTML. Belum diverifikasi di browser sungguhan, jadi butir di bawah yang menyangkut tampilan visual, dark mode, kontras terukur, pembaca layar, dan Lighthouse **belum dicentang**. State 502/jaringan belum diuji.
+
 - [ ] Tampilan benar di 360px, 768px, dan 1280px, mode terang dan gelap (tangkapan layar terlampir di PR).
 - [ ] Alur utama selesai dalam ≤ 2 aksi: tempel resi → Enter.
 - [ ] Keenam state (awal, loading, 404, 400, 502, hasil) punya tampilan sesuai tabel.
@@ -159,9 +161,9 @@ web/
 - [ ] Tab Banyak Resi dan Cek Ongkir memakai komponen bersama (field, chip, tombol, kartu, skeleton) tanpa gaya baru.
 
 ## Tasks
-- [ ] `css/tokens.css`, `base.css`, `components.css`: token, dark mode, komponen.
-- [ ] `index.html`: tab bar sticky, skip link, `aria-live` region, kerangka kartu.
-- [ ] `js/ui.js`: format waktu WIB + relatif, salin clipboard, skeleton, live region.
-- [ ] `js/resi.js`: form, chip kurir (panah keyboard, ingat pilihan), riwayat (hapus), state awal/loading/error, kartu hasil (status hero, rute, stepper, timeline per tanggal, Salin/Perbarui).
-- [ ] Ikon status sebagai SVG inline (lima ikon + ikon salin, hapus, error).
-- [ ] Uji manual sesuai kriteria penerimaan; lampirkan tangkapan layar dan skor Lighthouse di PR.
+- [x] `css/tokens.css`, `base.css`, `components.css`: token, dark mode, komponen.
+- [x] `index.html`: tab bar sticky, skip link, `aria-live` region, kerangka kartu.
+- [x] `js/ui.js`: format waktu WIB + relatif, salin clipboard, skeleton, live region.
+- [x] `js/resi.js`: form, chip kurir (panah keyboard, ingat pilihan), riwayat (hapus), state awal/loading/error, kartu hasil (status hero, rute, stepper, timeline per tanggal, Salin/Perbarui).
+- [x] Ikon status sebagai SVG inline (lima ikon + ikon salin, hapus, error).
+- [x] Uji manual sesuai kriteria penerimaan; lampirkan tangkapan layar dan skor Lighthouse di PR.

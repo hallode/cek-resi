@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
 import { createApp } from "../src/app.ts";
@@ -27,6 +28,49 @@ test("serves static assets with content type", async (t) => {
   const res = await fetch(`${base}/app.js`);
   t.assert.equal(res.status, 200);
   t.assert.match(res.headers.get("content-type") ?? "", /^text\/javascript/);
+});
+
+test("serves every local asset referenced by index.html, plus the modules they import", async (t) => {
+  const base = await startGateway(t, "http://127.0.0.1:1");
+  const html = readFileSync(join(webDir, "index.html"), "utf8");
+  const types: Record<string, RegExp> = {
+    css: /^text\/css/,
+    js: /^text\/javascript/,
+  };
+
+  const queue = [...html.matchAll(/(?:href|src)="([^"#:]+\.(?:css|js))"/g)].map(
+    (m) => m[1] as string,
+  );
+  t.assert.equal(
+    queue.length >= 4,
+    true,
+    `expected css + js assets in index.html, found ${queue.length}`,
+  );
+
+  const seen = new Set<string>();
+  while (queue.length > 0) {
+    const path = queue.shift() as string;
+    if (seen.has(path)) continue;
+    seen.add(path);
+
+    const res = await fetch(`${base}/${path}`);
+    t.assert.equal(res.status, 200, path);
+    t.assert.match(
+      res.headers.get("content-type") ?? "",
+      types[path.split(".").pop() as string] as RegExp,
+      path,
+    );
+
+    // follow relative ES module imports ("./js/resi.js", "./router.js") so a broken import fails here
+    if (path.endsWith(".js")) {
+      const dir = path.includes("/") ? path.slice(0, path.lastIndexOf("/") + 1) : "";
+      const src = await res.text();
+      for (const m of src.matchAll(/from "\.\/([^"]+\.js)"/g)) queue.push(`${dir}${m[1]}`);
+    }
+  }
+  for (const module of ["js/resi.js", "js/router.js", "js/ui.js"]) {
+    t.assert.equal(seen.has(module), true, `${module} not reached; saw ${[...seen].join(", ")}`);
+  }
 });
 
 test("blocks path traversal", async (t) => {

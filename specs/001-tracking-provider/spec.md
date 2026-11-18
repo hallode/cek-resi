@@ -92,4 +92,4 @@ Tab **Cek Resi** (`#/resi`, modul `web/js/resi.js`), mengikuti aturan frontend d
 - [ ] `api.track` memakai registry; tambah `source`; mapping error → status sesuai tabel.
 - [ ] `internal/spectest` + test yang memuat `specs/001-tracking-provider/cases.json`.
 - [ ] Ganti `TestTrack` tabel lama dengan cases dari spec (hindari duplikasi kasus).
-- [ ] web: pindahkan UI cek resi yang ada ke `web/js/resi.js` + permalink `#/resi?...` (setelah kerangka tab dari 000 ada).
+- [x] web: pindahkan UI cek resi yang ada ke `web/js/resi.js` + permalink `#/resi?...` (setelah kerangka tab dari 000 ada).

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Implemented sebagian (monorepo, skeleton service, harness spec: selesai; CI & kerangka tab frontend: belum) |
+| Status | Implemented sebagian (monorepo, skeleton service, harness spec, kerangka tab frontend: selesai; CI: belum) |
 | Service pemilik | semua |
 | Bergantung pada | — |
 | Test vectors | [`cases.json`](cases.json) (health check semua service) |
@@ -107,7 +107,7 @@ Menambah kurir = update tabel ini, lalu seed `tracking-go`, lalu pola di 002 dan
 - [x] Keempat service jalan dan `/health` sesuai A3 (cases 000 lulus, langsung ke masing-masing service).
 - [x] `mise run dev` menjalankan semua service; `http://localhost:8080` menampilkan UI dan cek resi berfungsi via gateway.
 - [ ] CI punya job per service + e2e, semuanya hijau.
-- [ ] Frontend satu halaman dengan tab sesuai F1–F7: tab Cek Resi berfungsi seperti sekarang, tab Banyak Resi & Cek Ongkir menampilkan "Segera hadir"; hash route & back/forward berfungsi.
+- [x] Frontend satu halaman dengan tab sesuai F1–F7: tab Cek Resi berfungsi seperti sekarang, tab Banyak Resi & Cek Ongkir menampilkan "Segera hadir"; hash route & back/forward berfungsi.
 
 ## Tasks
 - [x] `git mv` kode Go ke `services/tracking-go/`, hapus serve web dari Go, port default 8081, tambah `/health`.
@@ -116,4 +116,4 @@ Menambah kurir = update tabel ini, lalu seed `tracking-go`, lalu pola di 002 dan
 - [x] Helper `matchPartial` per bahasa + loader `cases.json` (divalidasi `specs/matcher-cases.json`).
 - [x] Root `mise.toml` + `AGENTS.md` root dan per service.
 - [ ] CI per service (`.github/workflows`) dan job e2e — belum dibuat.
-- [ ] web: kerangka tab — `web/js/router.js` (F1, F2, F4), `index.html` dengan navigasi tab + tab placeholder "Segera hadir (spec NNN)" (F5), `app.js` menjadi entry ES module. UI cek resi yang ada dipindah ke `web/js/resi.js` (dikerjakan bersama tugas web di 001).
+- [x] web: kerangka tab — `web/js/router.js` (F1, F2, F4), `index.html` dengan navigasi tab + tab placeholder "Segera hadir (spec NNN)" (F5), `app.js` menjadi entry ES module. UI cek resi yang ada dipindah ke `web/js/resi.js` (dikerjakan bersama tugas web di 001).

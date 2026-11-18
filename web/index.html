@@ -3,61 +3,87 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Cek posisi paket dari berbagai ekspedisi. Data demo.">
   <title>Cek Resi</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <script type="module" src="app.js"></script>
 </head>
 <body>
+  <a class="skip-link" href="#main">Lewati ke konten</a>
+
   <header class="topbar">
-    <div class="container"><a href="/" class="logo">cek<span>resi</span></a></div>
+    <div class="container topbar-inner">
+      <a href="#/resi" class="logo">cek<span>resi</span></a>
+      <nav class="tabs" aria-label="Fitur">
+        <a class="tab" href="#/resi" data-tab="resi">Cek Resi</a>
+        <a class="tab" href="#/bulk" data-tab="bulk">Banyak Resi <span class="tab-soon">Segera</span></a>
+        <a class="tab" href="#/ongkir" data-tab="ongkir">Cek Ongkir <span class="tab-soon">Segera</span></a>
+      </nav>
+    </div>
   </header>
 
-  <main class="container">
-    <section class="card">
-      <h1>Cek Resi Paket</h1>
-      <p class="muted">Pilih ekspedisi, lalu masukkan nomor resi. Data yang ditampilkan adalah data dummy.</p>
+  <main id="main" class="container" tabindex="-1">
+    <noscript><p class="card">Aplikasi ini membutuhkan JavaScript.</p></noscript>
 
-      <div id="couriers" class="couriers" role="radiogroup" aria-label="Pilih kurir"></div>
+    <!-- Tab: Cek Resi (spec 001, 002) -->
+    <div data-view="resi" hidden>
+      <section class="card search-card" aria-labelledby="resi-heading">
+        <h1 id="resi-heading">Cek Resi Paket</h1>
+        <p class="muted">Tempel nomor resi, pilih ekspedisi, lalu lihat posisi paketmu. Data yang tampil adalah data demo.</p>
 
-      <form id="track-form" class="track-form">
-        <input id="awb" name="awb" type="text" placeholder="No Resi" autocomplete="off" required>
-        <button type="submit">Cek Resi</button>
-      </form>
+        <form id="track-form" novalidate>
+          <label class="label" for="awb">No Resi</label>
+          <div class="input-wrap">
+            <input id="awb" name="awb" type="text" autocomplete="off" autocapitalize="characters"
+                   spellcheck="false" placeholder="Tempel nomor resi di sini" aria-describedby="awb-error">
+            <button type="button" id="awb-clear" class="icon-btn" aria-label="Hapus nomor resi" hidden>
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+          </div>
+          <p id="awb-error" class="field-error" role="alert" hidden></p>
 
-      <div id="history" class="history" hidden>
-        <span class="muted">Riwayat:</span>
-        <div id="history-list"></div>
-      </div>
-    </section>
+          <span class="label" id="courier-label">Ekspedisi</span>
+          <div id="couriers" class="chips chips-scroll" role="radiogroup" aria-labelledby="courier-label"></div>
 
-    <section id="message" class="card message" hidden></section>
+          <button type="submit" id="submit" class="btn btn-primary btn-block"><span>Cek Resi</span></button>
+        </form>
 
-    <section id="result" class="card" hidden>
-      <div class="result-head">
-        <div>
-          <div class="muted">No Resi</div>
-          <div id="r-awb" class="awb"></div>
+        <div id="history" hidden>
+          <div class="history-head">
+            <span class="label">Riwayat</span>
+            <button type="button" id="history-clear" class="link-btn">Hapus riwayat</button>
+          </div>
+          <div id="history-list" class="chips"></div>
         </div>
-        <span id="r-status" class="badge"></span>
-      </div>
-      <dl class="meta">
-        <dt>Ekspedisi</dt><dd id="r-courier"></dd>
-        <dt>Layanan</dt><dd id="r-service"></dd>
-        <dt>Pengirim</dt><dd id="r-sender"></dd>
-        <dt>Penerima</dt><dd id="r-receiver"></dd>
-      </dl>
+      </section>
 
-      <h2>Perjalanan Paket</h2>
-      <table class="timeline">
-        <thead><tr><th>Tanggal</th><th>Keterangan</th></tr></thead>
-        <tbody id="r-history"></tbody>
-      </table>
-    </section>
+      <div id="state" aria-busy="false"></div>
+    </div>
+
+    <!-- Tab: Banyak Resi (spec 003) -->
+    <div data-view="bulk" hidden>
+      <section class="card state-card">
+        <h1>Banyak Resi</h1>
+        <p class="muted">Segera hadir. Cek sampai 10 resi sekaligus dalam satu tabel.</p>
+      </section>
+    </div>
+
+    <!-- Tab: Cek Ongkir (spec 004) -->
+    <div data-view="ongkir" hidden>
+      <section class="card state-card">
+        <h1>Cek Ongkir</h1>
+        <p class="muted">Segera hadir. Bandingkan tarif antar ekspedisi sebelum mengirim.</p>
+      </section>
+    </div>
   </main>
+
+  <div id="live" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
 
   <footer class="container muted small">
     Proyek demo. Tidak terafiliasi dengan ekspedisi mana pun.
   </footer>
-
-  <script src="app.js"></script>
 </body>
 </html>
